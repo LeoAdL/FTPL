@@ -1,16 +1,18 @@
 function define_env(;ρ̄      =  2.2/100,
                      θᵨ     =   .22,
                      σᵨ     =   0.003,
-                     θᵢ      =   10.0,
+                     θᵢ      =   1.0,
                      θ      =   100.0,
                      ϵ      =   11,
                      ψ      =   1/2.0,
                      ϕ      =   1.25,
                      γ      =   1.0,
-                     T      =   30.0)
+                     T      =   50.0,
+                     N_t    =   100.0)
     init_ρ =   ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))
     σ   =   1/γ
-    dt  =   T/50.0
+    dt  =   T/N_t
+    
     params  =   @with_kw (ρ̄      =  ρ̄,
                      θᵨ     =   θᵨ,
                      θᵢ      =   θᵢ,
@@ -39,7 +41,7 @@ function solve_system(;params)
 
         du[1]  =   σ*(i-π-ρ)*x
         
-        du[2]  =   (ϵ-1.0)/θ*(x^(1\σ+ψ)-1.0)-π*((1.0-σ)*(i-π)+σ*ρ)
+        du[2]  =   -(ϵ-1.0)/θ*(x^(1.0\σ+ψ)-1.0)+π*((1.0-σ)*(i-π)+σ*ρ)
 
         du[3]  =   -θᵢ*(i-ϕ*π)
 
@@ -79,23 +81,19 @@ function solve_system(;params)
     bvp1 = TwoPointBVProblem(NK_Rote!, bc1!, init, tspan)
 
     sol1 = solve(bvp1, MIRK4(), dt=dt)
-    return (sol=sol1,SS=SS_vec,initial=init)
+    sol1[1,:] = sol1[1,:].-1.0
+    return (sol=sol1*100.0,SS=SS_vec,initial=init,t=sol1.t)
 end
 
-function plot_IRF(;pos =[1,2,3,4],sol,SS)
+function plot_IRF(;pos =[1,2,3,4],solution)
     val =["x","\\pi","i","\\rho"]
-
     val =val[pos]
     lab=[latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
-
     lab=reshape(lab,(1,length(val)))
 
-    dev =   ((sol[1:end].-SS)./SS)*100
-
-     
-    pp = [dev'[:,k] for k in pos]
-
-    p=plot(sol.t,sol[1:end]',label=lab,
+    pp =[(solution.sol)'[:,k] for k in pos]
+    p=plot(solution.t,pp,
+        label=lab,
         xlabel=L"t", 
         ylabel=L"\%",
         legend=:topright)
@@ -106,11 +104,9 @@ end
 
 function compute_dev(;θ,T)
         solution=solve_system(;params=define_env(θ=θ,T=T))
-        sol     =   solution.sol[1,:]
-        SS  =   solution.SS[1,:]
-        dev =   ((sol.-SS)./SS)*100.0
-        cum = sum(dev)
-        return (impact=dev[1],cum=cum)
+        solll     =   solution.sol[1,:]
+        cum = sum(solll)
+        return (impact=solll[1],cum=cum/T)
 end
 
 function plot_θ(;range=.1:19.9:100.0)
