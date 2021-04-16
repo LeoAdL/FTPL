@@ -10,19 +10,19 @@ using Printf
 #Schaab + KMV 2018
 
 
-function define_env(;ρ̄      =  .0022,
+function define_env(;ρ̄      =  2.2/100,
                      θᵨ     =   .22,
-                     θᵢ      =   1.0,
+                     σᵨ     =   0.003,
+                     θᵢ      =   10.0,
                      θ      =   100.0,
-                     ϵ      =   10,
-                     ψ      =   2.0,
+                     ϵ      =   11,
+                     ψ      =   1/2.0,
                      ϕ      =   1.25,
                      γ      =   2.0,
-                     T      =   10.0,
-                     σᵨ     =   0.003)
-    init_ρ =   ρ̄+sqrt(σᵨ^2/(1-θᵨ^2))
+                     T      =   30.0)
+    init_ρ =   ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))
     σ   =   1/γ
-    dt  =   T/100.0
+    dt  =   T/50.0
     params  =   @with_kw (ρ̄      =  ρ̄,
                      θᵨ     =   θᵨ,
                      θᵢ      =   θᵢ,
@@ -76,7 +76,7 @@ function bc1!(residual,u,p,t)
     @unpack init_ρ  =   params
     residual[1] =   u[end][1]- x_ss
     residual[2] =   u[end][2]- π_ss
-    residual[3] =   u[1][3]- i_ss
+    residual[3] =   u[end][3]- i_ss
     residual[4] =   u[1][4]- init_ρ
 end
 
@@ -86,10 +86,21 @@ end
 tspan   =   (0.0,T)
 
 
-bvp1 = BVProblem(NK_Rote!, bc1!, [x_ss,π_ss,i_ss,init_ρ], tspan)
+bvp1 = TwoPointBVProblem(NK_Rote!, bc1!, [x_ss,π_ss,i_ss,init_ρ], tspan)
 
-sol1 = solve(bvp1, GeneralMIRK4(), dt=dt)
+sol1 = solve(bvp1, MIRK4(), dt=dt)
 
 SS_vec = [x_ss,π_ss,i_ss,ρ_ss]
-dev =   (sol1[1:end].-SS_vec)./SS_vec
-plot(sol1.t,dev')
+dev =   ((sol1[1:end].-SS_vec)./SS_vec)*100
+
+
+val =   ["x","\\pi","i","\\rho"]
+lab=[latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
+
+lab=reshape(lab,(1,4))
+
+
+plot(sol1.t,dev',label=lab,
+    xlabel=L"t", 
+    ylabel=L"\%",
+    legend=:topright)
