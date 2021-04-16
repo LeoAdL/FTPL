@@ -19,10 +19,10 @@ function define_env(;ρ̄      =  .0022,
                      ϕ      =   1.25,
                      γ      =   2.0,
                      T      =   10.0,
-                     dt     =   .1,
                      σᵨ     =   0.003)
     init_ρ =   ρ̄+sqrt(σᵨ^2/(1-θᵨ^2))
     σ   =   1/γ
+    dt  =   T/100.0
     params  =   @with_kw (ρ̄      =  ρ̄,
                      θᵨ     =   θᵨ,
                      θᵢ      =   θᵢ,
@@ -90,5 +90,6 @@ bvp1 = BVProblem(NK_Rote!, bc1!, [x_ss,π_ss,i_ss,init_ρ], tspan)
 
 sol1 = solve(bvp1, GeneralMIRK4(), dt=dt)
 
-dev =   sol1[1:end].-[x_ss,π_ss,i_ss,init_ρ]
+SS_vec = [x_ss,π_ss,i_ss,ρ_ss]
+dev =   (sol1[1:end].-SS_vec)./SS_vec
 plot(sol1.t,dev')
