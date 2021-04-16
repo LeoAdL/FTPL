@@ -76,7 +76,7 @@ function bc1!(residual,u,p,t)
     @unpack init_ρ  =   params
     residual[1] =   u[end][1]- x_ss
     residual[2] =   u[end][2]- π_ss
-    residual[3] =   u[end][3]- i_ss
+    residual[3] =   u[1][3]- i_ss
     residual[4] =   u[1][4]- init_ρ
 end
 
