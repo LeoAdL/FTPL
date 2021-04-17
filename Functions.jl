@@ -81,8 +81,7 @@ function solve_system(;params)
     bvp1 = TwoPointBVProblem(NK_Rote!, bc1!, init, tspan)
 
     sol1 = solve(bvp1, MIRK4(), dt=dt)
-    sol1[1,:] = sol1[1,:].-1.0
-    return (sol=sol1*100.0,SS=SS_vec,initial=init,t=sol1.t)
+    return (sol=sol1,SS=SS_vec,initial=init,t=sol1.t)
 end
 
 function plot_IRF(;pos =[1,2,3,4],solution)
@@ -91,7 +90,12 @@ function plot_IRF(;pos =[1,2,3,4],solution)
     lab=[latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
     lab=reshape(lab,(1,length(val)))
 
-    pp =[(solution.sol)'[:,k] for k in pos]
+    SS  =   solution.SS
+    dev =   ((solution.sol[1:end].-SS)./SS)*100
+
+     
+    pp = [dev'[:,k] for k in pos]
+
     p=plot(solution.t,pp,
         label=lab,
         xlabel=L"t", 
@@ -103,21 +107,33 @@ end
 
 
 function compute_dev(;θ,T)
-        solution=solve_system(;params=define_env(θ=θ,T=T))
-        solll     =   solution.sol[1,:]
-        cum = sum(solll)
-        return (impact=solll[1],cum=cum/T)
+        solution=solve_system(;params=define_env(θ=θ))
+        SS  =   solution.SS[1]
+        dev =   ((solution.sol[1,1:end].-SS)./SS)*100
+        cum = sum(dev[1:floor(Int,T)])
+        return (impact=dev[1],cum=cum)
 end
 
-function plot_θ(;range=.1:19.9:100.0)
-    lab=[latexstring("\$\\theta={$(θ)}\$") for θ in range']
-    p=plot(compute_dev(10).t,
-            [compute_dev(θ).dev for θ in range], 
-            label=lab,
-            xlabel=L"t", 
+function plot_θ_impact(;theta_range=range(0.1,100,length=10))
+    p=plot(theta_range,
+            [compute_dev(;θ=θ,T=T).impact for θ in theta_range], 
+            xlabel=L"\theta", 
             ylabel=L"\%",
-            legend=:topright,
-            palette = palette([:blue,:red], length(range)))
+            legend=:bottomright,
+            palette = palette([:blue,:red], length(theta_range)))
     savefig(p,"theta.svg")
+    display(p)
+end
+
+function plot_θ_cum(;theta_range=range(0.1,100,length=5),
+                T_range=range(5,50,length=4))
+    p=plot(theta_range,
+            [[compute_dev(;θ=θ,T=T).cum for θ in theta_range] for T in T_range], 
+            label=[latexstring("\$T={$(T)}\$") for T in T_range'],
+            xlabel=L"\theta", 
+            ylabel=L"\%",
+            legend=:topleft,
+            palette = palette([:blue,:red], length(theta_range)))
+    savefig(p,"theta_cum.svg")
     display(p)
 end
