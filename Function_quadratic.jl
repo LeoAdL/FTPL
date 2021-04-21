@@ -8,7 +8,9 @@ function define_env(;ρ̄      =  2.2/100,
                      ϕ      =   1.25,
                      γ      =   2.0,
                      T      =   50.0,
-                     N_t    =   100.0)
+                     N_t    =   100.0,
+                     κ      =   0.1,
+                     δ      =   .1)
     init_ρ =   ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))
     σ   =   1/γ
     dt  =   T/N_t
@@ -23,14 +25,67 @@ function define_env(;ρ̄      =  2.2/100,
                      σ      =   σ,
                      γ      =   γ,
                      T      =   T,
+                     κ      =   κ,
+                     δ      =   δ,
                      dt     =   dt,
                      init_ρ=init_ρ)
     return params
 end
 
 function solve_system(;params)
-    function NK_Rote!(du,u,p,t)
-        @unpack σ,ϵ,θ,σ,ϕ,ψ,ρ̄,θᵨ,θᵢ =   params
+    function w(ℓ,C)
+        @unpack σ,ψ =   params
+        return (ℓ^(ψ)*C^(1/σ))
+    end
+
+    function ι(q)
+        @unpack κ=params
+        return((q-1)/k)
+    end
+
+    function ℓ(C,k,ι)
+        @unpack κ,α=params
+        dk  =   ι+κ*(ι)^(2)/2
+        return(k*(C/k+dk)^(1/(1-α)))
+    end
+
+    function ν_k(q,w,ℓ,k)
+        @unpack α=params
+        return((1/q)*(α/(1-α))*w*(ℓ/k))
+    end
+        
+    function χ(w,q,ν_k)
+        @unpack α=params
+        return((w/(1-α))^(1-α)*(q*ν_k/α)^(α))
+    end
+    function NK_natural()
+        @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ =   params
+        function obj(u)
+            F   =   zeros(6)
+            π=u[1]
+            C=u[2]
+            q=u[3]
+            k=u[4]
+            ρ=u[5]
+            i=u[6]
+
+            F[1]=δ+(i-π)+(ι(q)+κ*(ι(q))/2)/q-ι(q)
+            F[1]=F[1]-ν_k(q,w(ℓ,C),ℓ(C,k,ι),k)
+
+            F[2]=i-π-ρ
+            
+            F[3]=ι(q)-δ-(ι(q)+κ*(ι(q))/2)/q
+
+            F[4]=(1-σ)*(i-π)+σ*ρ
+
+            F[5]=ρ̄-ρ
+
+            F[6]=i-ϕ*π
+        end
+    end
+
+    function NK!(du,u,p,t)
+        @unpack σ,ϵ,θ,σ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ =   params
         x    =   u[1]
 
         π   =   u[2]

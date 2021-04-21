@@ -23,7 +23,7 @@ plot_IRF(;pos =[1],solution=solution)
 
 plot_θ_cum()
 
-compute_dev(;θ=1.0,T=50.0)
+compute_dev(;θ=10^(-5),T=10.0)
 
 compute_dev(;θ=1000.0,T=50.0)
 
