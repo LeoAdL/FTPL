@@ -27,7 +27,7 @@ function solve_system_quad(;params)
 
     function NK!(du,u,p,t)
         @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ =   params
-            χₙ=(ϵ-1)/ϵ
+            χₙ=A*(ϵ-1.0)/ϵ
             q=u[1]
             C=u[2]
             k=u[3]
@@ -35,13 +35,13 @@ function solve_system_quad(;params)
             ρ=u[5]
             i=u[6]
 
-            du[1]=q*((i-π)+(ι(q)+κ*(ι(q))^(2)/2)/q-ι(q)-ν_k(C,k,q))
+            du[1]=q*((i-π)+(ι(q)+κ*(ι(q))^(2.0)/2.0)/q-ι(q)-ν_k(C,k,q))
             
             du[2]=σ*C*(i-π-ρ)
             
             du[3]=ι(q)*k
 
-            du[4]=π*((1.0-σ)*(i-π)+σ*ρ)-(ϵ-1)/θ*(χ(C,k,q)/χₙ-1)
+            du[4]=π*((1.0-σ)*(i-π)+σ*ρ)-((ϵ-1)/θ)*(χ(C,k,q)/χₙ-1.0)
 
             du[5]=-θᵨ*(ρ-ρ̄)
 
@@ -52,16 +52,16 @@ function solve_system_quad(;params)
     function SS()
         @unpack α,γ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A =   params
 
-                    k_c=(α/(A*ρ̄))*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
+                    k_c=(α/(ρ̄))*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
     
-                    k_l=(k_c)^1.0/(1.0-α)
+                    k_l=(A*k_c)^1.0/(1.0-α)
 
             q_ss=1.0
             k_ss=(ρ̄*(1-α)/α*(k_l)^(1+ψ)*(k_c)*(γ))^(1/(ψ+γ))
             C_ss=k_ss/k_c
             π_ss=ρ̄/(ϕ-1.0)
             ρ_ss=ρ̄
-            i_ss=ϕ*ρ̄/(ϕ-1.0)
+            i_ss=ϕ*π_ss
        return(π_ss=π_ss,
                 C_ss=C_ss,
                 q_ss=q_ss,
@@ -87,9 +87,11 @@ function solve_system_quad(;params)
     SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
 
     u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
-    tspan   =   (0.0,5.0)
+    tspan   =   (0.0,50.0)
 
     solve(ODEProblem(NK!, SS_vec, tspan), Tsit5(), reltol=1e-8, abstol=1e-8)
+    
+    solve(ODEProblem(NK!, SS_vec, tspan),SSRootfind())
 
     bvp1 = TwoPointBVProblem(NK!, bc1!, u0, tspan)
 
