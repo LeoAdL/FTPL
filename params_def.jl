@@ -13,7 +13,8 @@ function define_env(;ρ̄      =  2.2/100,
                      T      =   50.0,
                      N_t    =   100.0,
                      κ      =   0.1,
-                     δ      =   .1)
+                     δ      =   .1,
+                     α      =   1/3)
     init_ρ =   ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))
     σ   =   1/γ
     dt  =   T/N_t
@@ -30,6 +31,7 @@ function define_env(;ρ̄      =  2.2/100,
                      T      =   T,
                      κ      =   κ,
                      δ      =   δ,
+                     α      =   α,
                      dt     =   dt,
                      init_ρ=init_ρ)
     return params

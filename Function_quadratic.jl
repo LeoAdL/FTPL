@@ -4,7 +4,7 @@ function solve_system_quad(;params)
         return (ℓ^(ψ)*C^(1/σ))
     end
 
-    function ι(q)
+    function ι(q,k)
         @unpack κ=params
         return((q-1)/k)
     end
@@ -37,12 +37,12 @@ function solve_system_quad(;params)
             ρ=u[5]
             i=u[6]
 
-            F[1]=δ+(i-π)+(ι(q)+κ*(ι(q))/2)/q-ι(q)
-            F[1]=F[1]-ν_k(q,w(ℓ(C,k,ι),C),ℓ(C,k,ι),k)
+            F[1]=δ+(i-π)+(ι(q,k)+κ*(ι(q,k))/2)/q-ι(q,k)
+            F[1]=F[1]-ν_k(q,w(ℓ(C,k,ι(q,k)),C),ℓ(C,k,ι(q,k)),k)
 
             F[2]=i-π-ρ
             
-            F[3]=ι(q)-δ-(ι(q)+κ*(ι(q))/2)/q
+            F[3]=ι(q,k)-δ-(ι(q,k)+κ*(ι(q,k))/2)/q
 
             F[4]=(1-σ)*(i-π)+σ*ρ
 
@@ -60,10 +60,9 @@ function solve_system_quad(;params)
         ρ=u[5]
         i=u[6]
 
-        ℓ=ℓ(C,k,ι)
-        w=w(ℓ,C)
-        ν=ν_k(q,w,ℓ,k)
-        χₙ=χ(w,q,ν_k)
+        ww=w(ℓ(C,k,ι(q,k)),C)
+        νν=ν_k(q,ww,ℓ,k)
+        χₙ=χ(ww,q,νν)
 
         return(π=π,
                 C=C,
@@ -84,17 +83,17 @@ function solve_system_quad(;params)
             ρ=u[5]
             i=u[6]
 
-            du[1]=δ+(i-π)+(ι(q)+κ*(ι(q))/2)/q-ι(q)
-            du[1]=du[1]-ν_k(q,w(ℓ(C,k,ι),C),ℓ(C,k,ι),k)
+            du[1]=δ+(i-π)+(ι(q,k)+κ*(ι(q,k))/2)/q-ι(q,k)
+            du[1]=du[1]-ν_k(q,w(ℓ(C,k,ι(q,k)),C),ℓ(C,k,ι(q,k)),k)
             du[1]=du[1]*q
 
             du[2]=σ*C*(i-π-ρ)
             
-            du[3]=(ι(q)-δ-(ι(q)+κ*(ι(q))/2)/q)*k
+            du[3]=(ι(q,k)-δ-(ι(q,k)+κ*(ι(q,k))/2)/q)*k
 
             du[4]=+((1-σ)*(i-π)+σ*ρ)*π
 
-            du[4]=du[4]-(ϵ-1)/(θ)*(χ(w(ℓ(C,k,ι),C),q,ν_k(q,w(ℓ(C,k,ι),C),ℓ(C,k,ι),k))/χₙ-1)
+            du[4]=du[4]-(ϵ-1)/(θ)*(χ(w(ℓ(C,k,ι(q,k)),C),q,ν_k(q,w(ℓ(C,k,ι(q,k)),C),ℓ(C,k,ι(q,k)),k))/χₙ-1)
 
             du[5]=θᵨ*(ρ̄-ρ)
 
