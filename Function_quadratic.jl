@@ -1,27 +1,28 @@
 function solve_system_quad(;params)
-    function w(ℓ,C)
-        @unpack γ,ψ =   params
-        return (ℓ^(ψ)*C^(γ))
-    end
-
     function ι(q)
         @unpack κ=params
         return((q-1.0)/κ)
     end
 
-    function ℓ(C,k,ι)
-        @unpack κ,α=params
-        return(k*(C/k+ι+κ*(ι)^(2.0)/2.0)^(1.0/(1.0-α)))
+    function ℓ(C,k,q)
+        @unpack κ,α,A=params
+        return(k*((C/k+ι(q)+κ*(ι(q))^(2.0)/2.0)/A)^(1.0/(1.0-α)))
     end
 
-    function ν_k(q,w,ℓ,k)
+    function w(q,C)
+        @unpack γ,ψ =   params
+        return (ℓ(C,k,q)^(ψ)*C^(γ))
+    end
+
+
+    function ν_k(C,q,k)
         @unpack α=params
-        return((1.0/q)*(α/(1.0-α))*w*(ℓ/k))
+        return((1.0/q)*(α/(1.0-α))*w(q,C)*(ℓ(C,k,q)/k))
     end
         
-    function χ(w,q,ν_k)
+    function χ(C,q,k)
         @unpack α=params
-        return((w/(1.0-α))^(1.0-α)*(q*ν_k/α)^(α))
+        return((w(q,C)/(1.0-α))^(1.0-α)*(q*ν_k(C,q,k)/α)^(α))
     end
 
     function NK!(du,u,p,t)
@@ -34,13 +35,13 @@ function solve_system_quad(;params)
             ρ=u[5]
             i=u[6]
 
-            du[1]=((i-π)+(ι(q)+κ*(ι(q))^(2)/2)/q-ι(q)-ν_k(q,w(ℓ(C,k,ι(q)),C),ℓ(C,k,ι(q)),k))*q
+            du[1]=((i-π)+(ι(q)+κ*(ι(q))^(2)/2)/q-ι(q)-ν_k(C,q,k))*q
             
             du[2]=σ*C*(i-π-ρ)
             
-            du[3]=(ι(q))*k
+            du[3]=ι(q)*k
 
-            du[4]=π*((1.0-σ)*(i-π)+σ*ρ)-(ϵ-1)/θ*(χ(w(ℓ(C,k,ι(q)),C),q,ν_k(q,w(ℓ(C,k,ι(q)),C),ℓ(C,k,ι(q)),k))/χₙ-1)
+            du[4]=π*((1.0-σ)*(i-π)+σ*ρ)-(ϵ-1)/θ*(χ(C,q,k)/χₙ-1)
 
             du[5]=-θᵨ*(ρ-ρ̄)
 
@@ -49,9 +50,9 @@ function solve_system_quad(;params)
     end
 
     function SS()
-        @unpack α,γ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ =   params
+        @unpack α,γ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A =   params
 
-                    k_c=α/ρ̄*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
+                    k_c=(α/(A*ρ̄))*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
     
                     k_l=(k_c)^1.0/(1.0-α)
 
@@ -86,7 +87,7 @@ function solve_system_quad(;params)
     SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
 
     u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
-    tspan   =   (0.0,T)
+    tspan   =   (0.0,5.0)
 
     solve(ODEProblem(NK!, SS_vec, tspan), Tsit5(), reltol=1e-8, abstol=1e-8)
 
