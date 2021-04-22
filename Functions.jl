@@ -1,33 +1,3 @@
-function define_env(;ρ̄      =  2.2/100,
-                     θᵨ     =   .22,
-                     σᵨ     =   0.003,
-                     θᵢ      =   1.0,
-                     θ      =   100.0,
-                     ϵ      =   11,
-                     ψ      =   1/2.0,
-                     ϕ      =   1.25,
-                     γ      =   2.0,
-                     T      =   50.0,
-                     N_t    =   100.0)
-    init_ρ =   ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))
-    σ   =   1/γ
-    dt  =   T/N_t
-    
-    params  =   @with_kw (ρ̄      =  ρ̄,
-                     θᵨ     =   θᵨ,
-                     θᵢ      =   θᵢ,
-                     θ      =   θ,
-                     ϵ      =   ϵ,
-                     ψ      =   ψ,
-                     ϕ      =   ϕ,
-                     σ      =   σ,
-                     γ      =   γ,
-                     T      =   T,
-                     dt     =   dt,
-                     init_ρ=init_ρ)
-    return params
-end
-
 function solve_system(;params)
     function NK_Rote!(du,u,p,t)
         @unpack σ,ϵ,θ,σ,ϕ,ψ,ρ̄,θᵨ,θᵢ =   params

@@ -10,16 +10,18 @@ using DifferentialEquations
 
 
 
-#Schaab + KMV 2018
 
-
+include("params_def.jl")
+params = define_env()
 include("Functions.jl")
-
-solution=solve_system(;params=define_env())
-
+include("Function_quadratic.jl")
 
 
-plot_IRF(;pos =[1],solution=solution)
+solution=solve_system_quad(;params=define_env())
+
+
+
+plot_IRF_quad(;solution=solution)
 
 plot_θ_cum()
 

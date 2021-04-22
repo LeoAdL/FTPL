@@ -1,38 +1,4 @@
-function define_env(;ρ̄      =  2.2/100,
-                     θᵨ     =   .22,
-                     σᵨ     =   0.003,
-                     θᵢ      =   1.0,
-                     θ      =   100.0,
-                     ϵ      =   11,
-                     ψ      =   1/2.0,
-                     ϕ      =   1.25,
-                     γ      =   2.0,
-                     T      =   50.0,
-                     N_t    =   100.0,
-                     κ      =   0.1,
-                     δ      =   .1)
-    init_ρ =   ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))
-    σ   =   1/γ
-    dt  =   T/N_t
-    
-    params  =   @with_kw (ρ̄      =  ρ̄,
-                     θᵨ     =   θᵨ,
-                     θᵢ      =   θᵢ,
-                     θ      =   θ,
-                     ϵ      =   ϵ,
-                     ψ      =   ψ,
-                     ϕ      =   ϕ,
-                     σ      =   σ,
-                     γ      =   γ,
-                     T      =   T,
-                     κ      =   κ,
-                     δ      =   δ,
-                     dt     =   dt,
-                     init_ρ=init_ρ)
-    return params
-end
-
-function solve_system(;params)
+function solve_system_quad(;params)
     function w(ℓ,C)
         @unpack σ,ψ =   params
         return (ℓ^(ψ)*C^(1/σ))
@@ -137,7 +103,11 @@ function solve_system(;params)
     end
 
     function SS()
-    u = solve(NK,SSRootfind())
+    @unpack T = params
+    init    =   zeros(6)
+    tspan   =   (0.0,T)
+    SS=ODEProblem(NK!, init, tspan)
+    u = solve(SS,SSRootfind())
             q_ss=u[1]
             C_ss=u[2]
             k_ss=u[3]
@@ -178,7 +148,7 @@ function solve_system(;params)
     return (sol=sol1,SS=SS_vec,initial=init,t=sol1.t)
 end
 
-function plot_IRF(;pos =[1,2,3,4,5,6],solution)
+function plot_IRF_quad(;pos =[1,2,3,4,5,6],solution)
     val =["q","Y","k","\\pirho","i",]
     val =val[pos]
     lab=[latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
@@ -200,7 +170,7 @@ function plot_IRF(;pos =[1,2,3,4,5,6],solution)
 end
 
 
-function compute_dev(;θ,T)
+function compute_dev_quad(;θ,T)
         solution=solve_system(;params=define_env(θ=θ))
         SS  =   solution.SS[2]
         dev =   ((solution.sol[1,1:end].-SS)./SS)*100
@@ -208,7 +178,7 @@ function compute_dev(;θ,T)
         return (impact=dev[2],cum=cum)
 end
 
-function plot_θ_impact(;theta_range=range(10^(-3),500,length=10))
+function plot_θ_impact_quad(;theta_range=range(10^(-3),500,length=10))
     p=plot(theta_range,
             [compute_dev(;θ=θ,T=T).impact for θ in theta_range], 
             xlabel=L"\theta", 
@@ -219,7 +189,7 @@ function plot_θ_impact(;theta_range=range(10^(-3),500,length=10))
     display(p)
 end
 
-function plot_θ_cum(;theta_range=range(1,500,length=10),
+function plot_θ_cum_quad(;theta_range=range(1,500,length=10),
                 T_range=[1,2,4,10,20,50])
     p=plot(theta_range,
             [[compute_dev(;θ=θ,T=T).cum for θ in theta_range] for T in T_range], 
