@@ -1,9 +1,8 @@
 using BoundaryValueDiffEq
-using LinearAlgebra, Statistics, Plots
+using Plots
 using Parameters,LaTeXStrings
 using NLsolve
 using StatsBase, Random
-using Distributions
 using Formatting
 using Printf
 using DifferentialEquations
@@ -12,7 +11,7 @@ using DifferentialEquations
 
 
 include("params_def.jl")
-params = define_env()
+params=define_env()
 include("Functions.jl")
 include("Function_quadratic.jl")
 

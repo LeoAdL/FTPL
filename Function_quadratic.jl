@@ -1,18 +1,17 @@
 function solve_system_quad(;params)
     function w(ℓ,C)
-        @unpack σ,ψ =   params
-        return (ℓ^(ψ)*C^(1/σ))
+        @unpack γ,ψ =   params
+        return (ℓ^(ψ)*C^(γ))
     end
 
-    function ι(q,k)
+    function ι(q)
         @unpack κ=params
-        return((q-1)/k)
+        return((q-1)/κ)
     end
 
     function ℓ(C,k,ι)
         @unpack κ,α=params
-        dk  =   ι+κ*(ι)^(2)/2
-        return(k*(C/k+dk)^(1/(1-α)))
+        return(k*(C/k+ι+κ*(ι)^(2)/2)^(1/(1-α)))
     end
 
     function ν_k(q,w,ℓ,k)
@@ -25,57 +24,9 @@ function solve_system_quad(;params)
         return((w/(1-α))^(1-α)*(q*ν_k/α)^(α))
     end
 
-    function NK_natural()
-        @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ =   params
-        function obj(u)
-            @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ =   params
-            F   =   zeros(6)
-            π=u[1]
-            C=u[2]
-            q=u[3]
-            k=u[4]
-            ρ=u[5]
-            i=u[6]
-
-            F[1]=δ+(i-π)+(ι(q,k)+κ*(ι(q,k))/2)/q-ι(q,k)
-            F[1]=F[1]-ν_k(q,w(ℓ(C,k,ι(q,k)),C),ℓ(C,k,ι(q,k)),k)
-
-            F[2]=i-π-ρ
-            
-            F[3]=ι(q,k)-δ-(ι(q,k)+κ*(ι(q,k))/2)/q
-
-            F[4]=(1-σ)*(i-π)+σ*ρ
-
-            F[5]=ρ̄-ρ
-
-            F[6]=i-ϕ*π
-            return(F)
-        end
-        u = nlsolve(obj, zeros(6))
-
-        π=u[1]
-        C=u[2]
-        q=u[3]
-        k=u[4]
-        ρ=u[5]
-        i=u[6]
-
-        ww=w(ℓ(C,k,ι(q,k)),C)
-        νν=ν_k(q,ww,ℓ,k)
-        χₙ=χ(ww,q,νν)
-
-        return(π=π,
-                C=C,
-                q=q,
-                k=k,
-                ρ=ρ,
-                i=i,
-                χₙ=χₙ)
-    end
-
     function NK!(du,u,p,t)
         @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ =   params
-        χₙ=NK_natural().χₙ
+            χₙ=(ϵ-1)/ϵ
             q=u[1]
             C=u[2]
             k=u[3]
@@ -83,30 +34,27 @@ function solve_system_quad(;params)
             ρ=u[5]
             i=u[6]
 
-            du[1]=δ+(i-π)+(ι(q,k)+κ*(ι(q,k))/2)/q-ι(q,k)
-            du[1]=du[1]-ν_k(q,w(ℓ(C,k,ι(q,k)),C),ℓ(C,k,ι(q,k)),k)
-            du[1]=du[1]*q
-
+            du[1]=(δ+(i-π)+(ι(q)+κ*(ι(q))^(2)/2)/q-ι(q)-ν_k(q,w(ℓ(C,k,ι(q)),C),ℓ(C,k,ι(q)),k))*q
+            
             du[2]=σ*C*(i-π-ρ)
             
-            du[3]=(ι(q,k)-δ-(ι(q,k)+κ*(ι(q,k))/2)/q)*k
+            du[3]=(ι(q)-δ)*k
 
-            du[4]=+((1-σ)*(i-π)+σ*ρ)*π
+            du[4]=π*((1.0-σ)*(i-π)+σ*ρ)-(ϵ-1)/θ*(χ(w(ℓ(C,k,ι(q)),C),q,ν_k(q,w(ℓ(C,k,ι(q)),C),ℓ(C,k,ι(q)),k))/χₙ-1)
 
-            du[4]=du[4]-(ϵ-1)/(θ)*(χ(w(ℓ(C,k,ι(q,k)),C),q,ν_k(q,w(ℓ(C,k,ι(q,k)),C),ℓ(C,k,ι(q,k)),k))/χₙ-1)
-
-            du[5]=θᵨ*(ρ̄-ρ)
+            du[5]=-θᵨ*(ρ-ρ̄)
 
             du[6]=-θᵢ*(i-ϕ*π)
         
     end
 
     function SS()
-    @unpack T = params
-    init    =   zeros(6)
+    @unpack T,init_ρ = params
+    init    =   ones(6)*.1
+    init[1] = 1.1
     tspan   =   (0.0,T)
     SS=ODEProblem(NK!, init, tspan)
-    u = solve(SS,SSRootfind())
+    u = solve(SS,DynamicSS(Tsit5()))
             q_ss=u[1]
             C_ss=u[2]
             k_ss=u[3]
@@ -194,7 +142,7 @@ function plot_θ_cum_quad(;theta_range=range(1,500,length=10),
             [[compute_dev(;θ=θ,T=T).cum for θ in theta_range] for T in T_range], 
             label=[latexstring("\$T={$(T)}\$") for T in T_range'],
             xlabel=L"\theta", 
-            ylabel=L"\sum_{t=1}^{T}\widehat{{x}}_{t}(\%)",
+            ylabel=L"\sum_{t=1}{T}\widehat{{x}}_{t}(\%)",
             legend=:topleft,
             palette = palette([:blue,:red], length(T_range)))
     savefig(p,"theta_cum.svg")
