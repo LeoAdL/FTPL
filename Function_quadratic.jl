@@ -103,7 +103,7 @@ function solve_system_quad(;params)
     C=u[2,:][:]
     k=u[3,:][:]
 
-    sol1  =   similar(zeros(size(u)[1]+3,size(u)[2]))
+    sol1  =   similar(zeros(size(u)[1]+2,size(u)[2]))
     sol1[1:5,:]  = u[2:end,:]
 
     @unpack δ =   params
@@ -118,17 +118,17 @@ function solve_system_quad(;params)
     return (sol=sol1,SS=SS_vec,initial=init,t=u.t)
 end
 
-function plot_IRF_quad(;pos =[1,2,3,4,5,6],solution)
+function plot_IRF_quad(;pos =[1,2,3,4,5,6,7,8],solution)
     val =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y"]
     val =val[pos]
     lab=[latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
     lab=reshape(lab,(1,length(val)))
 
     SS  =   solution.SS
-    dev =   ((solution.sol[1:end].-SS)./SS)*100
+    dev =   ((solution.sol.-SS)./SS)*100
 
      
-    pp = [dev'[:,k] for k in pos]
+    pp = [dev[k,:] for k in pos]
 
     p=plot(solution.t,pp,
         label=lab,
@@ -142,10 +142,10 @@ end
 
 function compute_dev_quad(;θ,T)
         solution=solve_system(;params=define_env(θ=θ))
-        SS  =   solution.SS[2]
-        dev =   ((solution.sol[1,1:end].-SS)./SS)*100
+        SS  =   solution.SS[8]
+        dev =   ((solution.sol[8,:].-SS)./SS)*100
         cum = sum(dev[1:floor(Int,T)])
-        return (impact=dev[2],cum=cum)
+        return (impact=dev[1],cum=cum)
 end
 
 function plot_θ_impact_quad(;theta_range=range(10^(-3),500,length=10))
