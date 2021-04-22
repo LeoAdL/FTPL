@@ -26,7 +26,7 @@ function solve_system_quad(;params)
     end
 
     function NK!(du,u,p,t)
-        @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ =   params
+        @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A =   params
             χₙ=A*(ϵ-1.0)/ϵ
             q=u[1]
             C=u[2]
@@ -54,7 +54,7 @@ function solve_system_quad(;params)
 
                     k_c=(α/(ρ̄))*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
     
-                    k_l=(A*k_c)^1.0/(1.0-α)
+                    k_l=(A*k_c)^(1.0/(1.0-α))
 
             q_ss=1.0
             k_ss=(ρ̄*(1-α)/α*(k_l)^(1+ψ)*(k_c)*(γ))^(1/(ψ+γ))
@@ -87,7 +87,7 @@ function solve_system_quad(;params)
     SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
 
     u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
-    tspan   =   (0.0,50.0)
+    tspan   =   (0.0,20.0)
 
     solve(ODEProblem(NK!, SS_vec, tspan), Tsit5(), reltol=1e-8, abstol=1e-8)
     
