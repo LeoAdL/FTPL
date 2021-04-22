@@ -11,7 +11,7 @@ using DifferentialEquations
 
 
 include("params_def.jl")
-params=define_env(;γ=1.0)
+params=define_env()
 include("Functions.jl")
 include("Function_quadratic.jl")
 

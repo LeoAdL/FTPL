@@ -25,6 +25,12 @@ function solve_system_quad(;params)
         return((w(C,k,q)/(1.0-α))^(1.0-α)*(q*ν_k(C,k,q)/α)^(α))
     end
 
+    function Y(C,k,q)
+        @unpack α,A=params
+        return(A*(k)^(α)*(ℓ(C,k,q))^(1-α))
+    end
+
+
     function NK!(du,u,p,t)
         @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A =   params
             χₙ=A*(ϵ-1.0)/ϵ
@@ -52,12 +58,12 @@ function solve_system_quad(;params)
     function SS()
         @unpack α,γ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A =   params
 
-                    k_c=(α/(ρ̄))*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
+                    k_c=(α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
     
                     k_l=(A*k_c)^(1.0/(1.0-α))
 
             q_ss=1.0
-            k_ss=(ρ̄*(1-α)/α*(k_l)^(1+ψ)*(k_c)*(γ))^(1/(ψ+γ))
+            k_ss=(ρ̄*((1-α)/α)*(k_l)^(1+ψ)*(k_c)^(γ))^(1/(ψ+γ))
             C_ss=k_ss/k_c
             π_ss=ρ̄/(ϕ-1.0)
             ρ_ss=ρ̄
@@ -87,20 +93,31 @@ function solve_system_quad(;params)
     SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
 
     u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
-    tspan   =   (0.0,20.0)
-
-    solve(ODEProblem(NK!, SS_vec, tspan), Tsit5(), reltol=1e-8, abstol=1e-8)
-    
-    solve(ODEProblem(NK!, SS_vec, tspan),SSRootfind())
+    tspan   =   (0.0,T)
 
     bvp1 = TwoPointBVProblem(NK!, bc1!, u0, tspan)
 
-    sol1 = solve(bvp1, MIRK4(), dt=dt)
+    u = solve(bvp1, MIRK4(), dt=dt)
+
+    q=u[1]
+    C=u[2]
+    k=u[3]
+    π=u[4]
+    ρ=u[5]
+    i=u[6]
+
+    sol1  =   zeros(8)
+    sol1[1:5]  = u[2:end]
+
+    sol1[6] =   ι(q)+δ
+    sol1[7] =   ℓ(C,k,q)
+    sol1[9] =   Y(C,k,q)
+
     return (sol=sol1,SS=SS_vec,initial=init,t=sol1.t)
 end
 
 function plot_IRF_quad(;pos =[1,2,3,4,5,6],solution)
-    val =["q","Y","k","\\pirho","i",]
+    val =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y"]
     val =val[pos]
     lab=[latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
     lab=reshape(lab,(1,length(val)))
