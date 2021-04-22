@@ -16,11 +16,11 @@ include("Functions.jl")
 include("Function_quadratic.jl")
 
 
-solution=solve_system_quad(;params=define_env())
+solution=solve_system_quad(;params=define_env(;T=50))
 
 
 
-plot_IRF_quad(;solution=solution)
+plot_IRF_quad(;pos =[1,3,5,7,8],solution=solution)
 
 plot_θ_cum()
 

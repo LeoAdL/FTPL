@@ -108,9 +108,9 @@ function solve_system_quad(;params)
 
     @unpack δ =   params
 
-    sol1[5,:] =   ι.(q) .+ δ
-    sol1[6,:] =   ℓ.(C,k,q)
-    sol1[7,:] =   Y.(C,k,q)
+    sol1[6,:] =   ι.(q) .+ δ
+    sol1[7,:] =   ℓ.(C,k,q)
+    sol1[8,:] =   Y.(C,k,q)
 
     SS_vec = [C_ss,k_ss,π_ss,init_ρ,i_ss,ι.(q_ss) .+ δ,
                 ℓ.(C_ss,k_ss,q_ss),
