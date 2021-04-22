@@ -99,21 +99,23 @@ function solve_system_quad(;params)
 
     u = solve(bvp1, MIRK4(), dt=dt)
 
-    q=u[1]
-    C=u[2]
-    k=u[3]
-    π=u[4]
-    ρ=u[5]
-    i=u[6]
+    q=u[1,:][:]
+    C=u[2,:][:]
+    k=u[3,:][:]
 
-    sol1  =   zeros(8)
-    sol1[1:5]  = u[2:end]
+    sol1  =   similar(zeros(size(u)[1]+3,size(u)[2]))
+    sol1[1:5,:]  = u[2:end,:]
 
-    sol1[6] =   ι(q)+δ
-    sol1[7] =   ℓ(C,k,q)
-    sol1[9] =   Y(C,k,q)
+    @unpack δ =   params
 
-    return (sol=sol1,SS=SS_vec,initial=init,t=sol1.t)
+    sol1[5,:] =   ι.(q) .+ δ
+    sol1[6,:] =   ℓ.(C,k,q)
+    sol1[7,:] =   Y.(C,k,q)
+
+    SS_vec = [C_ss,k_ss,π_ss,init_ρ,i_ss,ι.(q_ss) .+ δ,
+                ℓ.(C_ss,k_ss,q_ss),
+                Y.(C_ss,k_ss,q_ss)]
+    return (sol=sol1,SS=SS_vec,initial=init,t=u.t)
 end
 
 function plot_IRF_quad(;pos =[1,2,3,4,5,6],solution)
