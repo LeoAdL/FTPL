@@ -134,7 +134,8 @@ function plot_IRF_quad(;pos =[1,2,3,4,5,6,7,8],solution)
 
     p=plot(solution.t,pp,
         label=lab,
-        xlabel=L"t", 
+        xlabel=L"t",
+        legendfontsize=7,
         ylabel=L"\%",
         legend=:topright)
     display(p)
@@ -143,7 +144,7 @@ end
 
 
 function compute_dev_quad(;θ,T,κ)
-        solution=solve_system_quad(;params=define_env(θ=θ,κ=κ,N_t=50))
+        solution=solve_system_quad(;params=define_env(θ=θ,κ=κ))
         SS  =   solution.SS[end]
         dev =   ((solution.sol[end,:].-SS)./SS)*100
         cum = sum(dev[1:floor(Int,T)])
