@@ -153,7 +153,7 @@ end
 @unpack T = define_env()
 
 function plot_θ_cum_quad(;theta_range=range(.1,500,length=10),
-                T_range=[T],κ_range=[0.1,100.0,10.0^4.0])
+                T_range=[T],κ_range=[1,10,100.0,10.0^4.0])
     N   = length(T_range)*length(κ_range)    
     lab=[latexstring("\$T={$(T)},\\kappa={$(κ)}\$") for (T,κ) in Iterators.product(T_range, κ_range)][:]
     lab=reshape(lab,1,N)
@@ -169,7 +169,7 @@ function plot_θ_cum_quad(;theta_range=range(.1,500,length=10),
             label=lab,
             xlabel=L"\theta", 
             ylabel=L"\sum_{t=1}{T}\widehat{{Y}}_{t}(\%)",
-            legendfontsize=5,
+            legendfontsize=7,
             palette = palette([:blue,:red],N),
             legend=:bottomright)
     savefig(p,"theta_cum.svg")
