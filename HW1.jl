@@ -21,7 +21,9 @@ solution=solve_system_quad(;params=define_env(;T=50,κ=.1))
 
 plot_IRF_quad(;pos =[1,3,5,7,8],solution=solution)
 
-plot_θ_cum_quad()
+plot_θ_cum_quad(theta_range=range(.1,500,length=10),κ_range=[10^(-3)])
+
+plot_θ_cum_quad(;theta_range=range(.1,500,length=10),T_range=[1])
 
 compute_dev(;θ=10^(-5),T=10.0)
 

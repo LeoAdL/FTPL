@@ -143,7 +143,7 @@ end
 
 
 function compute_dev_quad(;θ,T,κ)
-        solution=solve_system_quad(;params=define_env(θ=θ,κ=κ))
+        solution=solve_system_quad(;params=define_env(θ=θ,κ=κ,N_t=50))
         SS  =   solution.SS[end]
         dev =   ((solution.sol[end,:].-SS)./SS)*100
         cum = sum(dev[1:floor(Int,T)])
@@ -153,7 +153,7 @@ end
 @unpack T = define_env()
 
 function plot_θ_cum_quad(;theta_range=range(.1,500,length=10),
-                T_range=[T],κ_range=[1,10,100.0,10.0^4.0])
+                T_range=[T],κ_range=[.5,5,50,500.0,5*10.0^6.0])
     N   = length(T_range)*length(κ_range)    
     lab=[latexstring("\$T={$(T)},\\kappa={$(κ)}\$") for (T,κ) in Iterators.product(T_range, κ_range)][:]
     lab=reshape(lab,1,N)
@@ -172,6 +172,6 @@ function plot_θ_cum_quad(;theta_range=range(.1,500,length=10),
             legendfontsize=7,
             palette = palette([:blue,:red],N),
             legend=:bottomright)
-    savefig(p,"theta_cum.svg")
+    savefig(p,"theta_cum_$(T_range[1]).svg")
     display(p)
 end
