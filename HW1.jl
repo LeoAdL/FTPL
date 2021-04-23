@@ -11,18 +11,17 @@ using DifferentialEquations
 
 
 include("params_def.jl")
-params=define_env()
 include("Functions.jl")
 include("Function_quadratic.jl")
 
 
-solution=solve_system_quad(;params=define_env(;T=50))
+solution=solve_system_quad(;params=define_env(;T=50,κ=.1))
 
 
 
 plot_IRF_quad(;pos =[1,3,5,7,8],solution=solution)
 
-plot_θ_cum()
+plot_θ_cum_quad()
 
 compute_dev(;θ=10^(-5),T=10.0)
 

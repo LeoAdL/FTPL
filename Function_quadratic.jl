@@ -41,7 +41,7 @@ function solve_system_quad(;params)
             ρ=u[5]
             i=u[6]
 
-            du[1]=q*((i-π)+(ι(q)+κ*(ι(q))^(2.0)/2.0)/q-ι(q)-ν_k(C,k,q))
+            du[1]=q*(i-π+(ι(q)+κ*(ι(q))^(2.0)/2.0)/q-ι(q)-ν_k(C,k,q))
             
             du[2]=σ*C*(i-π-ρ)
             
@@ -73,7 +73,9 @@ function solve_system_quad(;params)
                 q_ss=q_ss,
                 k_ss=k_ss,
                 ρ_ss=ρ_ss,
-                i_ss=i_ss)    
+                i_ss=i_ss,
+                ℓ_ss=k_ss/k_l,
+                ι_ss=0.0)    
     end
 
     function bc1!(residual,u,p,t)
@@ -87,8 +89,8 @@ function solve_system_quad(;params)
         residual[6] =   u[1][6]- i_ss
     end
 
-    @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss= SS()
-    @unpack T,dt,init_ρ = params
+    @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss,ℓ_ss,ι_ss= SS()
+    @unpack T,dt,init_ρ,α = params
 
     SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
 
@@ -106,15 +108,15 @@ function solve_system_quad(;params)
     sol1  =   similar(zeros(size(u)[1]+2,size(u)[2]))
     sol1[1:5,:]  = u[2:end,:]
 
-    @unpack δ =   params
+    @unpack δ,A =   params
 
     sol1[6,:] =   ι.(q) .+ δ
     sol1[7,:] =   ℓ.(C,k,q)
     sol1[8,:] =   Y.(C,k,q)
 
-    SS_vec = [C_ss,k_ss,π_ss,init_ρ,i_ss,ι.(q_ss) .+ δ,
-                ℓ.(C_ss,k_ss,q_ss),
-                Y.(C_ss,k_ss,q_ss)]
+    SS_vec = [C_ss,k_ss,π_ss,init_ρ,i_ss,ι_ss+ δ,
+                ℓ_ss,
+                A*(ℓ_ss)^(1.0-α)*(k_ss)^(α)]
     return (sol=sol1,SS=SS_vec,initial=init,t=u.t)
 end
 
@@ -140,34 +142,36 @@ function plot_IRF_quad(;pos =[1,2,3,4,5,6,7,8],solution)
 end
 
 
-function compute_dev_quad(;θ,T)
-        solution=solve_system(;params=define_env(θ=θ))
-        SS  =   solution.SS[8]
-        dev =   ((solution.sol[8,:].-SS)./SS)*100
+function compute_dev_quad(;θ,T,κ)
+        solution=solve_system_quad(;params=define_env(θ=θ,κ=κ))
+        SS  =   solution.SS[end]
+        dev =   ((solution.sol[end,:].-SS)./SS)*100
         cum = sum(dev[1:floor(Int,T)])
         return (impact=dev[1],cum=cum)
 end
 
-function plot_θ_impact_quad(;theta_range=range(10^(-3),500,length=10))
-    p=plot(theta_range,
-            [compute_dev(;θ=θ,T=T).impact for θ in theta_range], 
-            xlabel=L"\theta", 
-            ylabel=L"\%",
-            legend=:bottomright,
-            palette = palette([:blue,:red], length(theta_range)))
-    savefig(p,"theta.svg")
-    display(p)
-end
+@unpack T = define_env()
 
-function plot_θ_cum_quad(;theta_range=range(1,500,length=10),
-                T_range=[1,2,4,10,20,50])
+function plot_θ_cum_quad(;theta_range=range(.1,500,length=10),
+                T_range=[T],κ_range=[0.1,100.0,10.0^4.0])
+    N   = length(T_range)*length(κ_range)    
+    lab=[latexstring("\$T={$(T)},\\kappa={$(κ)}\$") for (T,κ) in Iterators.product(T_range, κ_range)][:]
+    lab=reshape(lab,1,N)
+    y = [[compute_dev_quad(;θ=θ,T=T,κ=κ).cum for θ in theta_range] for (T,κ) in Iterators.product(T_range, κ_range)]
+    y = reshape(y,1,N)[:]
+    y_pp= y[1]
+
+    for n in 2:N
+        y_pp=hcat(y_pp,y[n])
+    end
     p=plot(theta_range,
-            [[compute_dev(;θ=θ,T=T).cum for θ in theta_range] for T in T_range], 
-            label=[latexstring("\$T={$(T)}\$") for T in T_range'],
+            y_pp, 
+            label=lab,
             xlabel=L"\theta", 
-            ylabel=L"\sum_{t=1}{T}\widehat{{x}}_{t}(\%)",
-            legend=:topleft,
-            palette = palette([:blue,:red], length(T_range)))
+            ylabel=L"\sum_{t=1}{T}\widehat{{Y}}_{t}(\%)",
+            legendfontsize=5,
+            palette = palette([:blue,:red],N),
+            legend=:bottomright)
     savefig(p,"theta_cum.svg")
     display(p)
 end
