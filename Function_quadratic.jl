@@ -154,7 +154,7 @@ end
 @unpack T = define_env()
 
 function plot_θ_cum_quad(;theta_range=range(.1,500,length=10),
-                T_range=[T],κ_range=[.5,5,50,500.0,5*10.0^6.0])
+                T_range=[T],κ_range=[1.0,5,50,500.0,5*10.0^6.0])
     N   = length(T_range)*length(κ_range)    
     lab=[latexstring("\$T={$(T)},\\kappa={$(κ)}\$") for (T,κ) in Iterators.product(T_range, κ_range)][:]
     lab=reshape(lab,1,N)
