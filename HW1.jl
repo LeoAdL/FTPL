@@ -6,7 +6,7 @@ using StatsBase, Random
 using Formatting
 using Printf
 using DifferentialEquations
-
+using ApproxFun
 
 
 
@@ -14,14 +14,11 @@ include("params_def.jl")
 include("Functions.jl")
 include("Function_quadratic.jl")
 
+solution=solve_system_quad(;params=define_env(T=300,κ=3,N_t=300))
 
-solution=solve_system_quad(;params=define_env(;κ=.1))
+plot_IRF_quad(;solution=solution)
 
-
-
-plot_IRF_quad(;pos =[1,3,5,7,8],solution=solution)
-
-plot_θ_cum_quad(theta_range=range(.1,500,length=5))
+plot_θ_cum_quad(;var="r",theta_range=range(.1,500,length=2),κ_range=[10,100])
 
 plot_θ_cum_quad(;theta_range=range(.1,500,length=10),T_range=[1])
 

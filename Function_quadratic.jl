@@ -47,8 +47,8 @@ function solve_system_quad(;params)
             
             du[3]=ι(q)*k
 
-            du[4]=π*((1.0-σ)*(i-π)+σ*ρ)-((ϵ-1)/θ)*(χ(C,k,q)/χₙ-1.0)
-
+            du[4]=π*((1.0-σ)*(i-π)+σ*ρ)-((ϵ-1.0)/θ)*(χ(C,k,q)/χₙ-1.0)
+            
             du[5]=-θᵨ*(ρ-ρ̄)
 
             du[6]=-θᵢ*(i-ϕ*π)
@@ -96,7 +96,8 @@ function solve_system_quad(;params)
 
     u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
     tspan   =   (0.0,T)
-
+    
+    
     bvp1 = TwoPointBVProblem(NK!, bc1!, u0, tspan)
 
     u = solve(bvp1, MIRK4(), dt=dt)
@@ -104,8 +105,10 @@ function solve_system_quad(;params)
     q=u[1,:][:]
     C=u[2,:][:]
     k=u[3,:][:]
+    π=u[4,:][:]
+    i=u[6,:][:] 
 
-    sol1  =   similar(zeros(size(u)[1]+2,size(u)[2]))
+    sol1  =   similar(zeros(size(u)[1]+3,size(u)[2]))
     sol1[1:5,:]  = u[2:end,:]
 
     @unpack δ,A =   params
@@ -113,15 +116,25 @@ function solve_system_quad(;params)
     sol1[6,:] =   ι.(q) .+ δ
     sol1[7,:] =   ℓ.(C,k,q)
     sol1[8,:] =   Y.(C,k,q)
+    sol1[9,:] =   i.-π
 
-    SS_vec = [C_ss,k_ss,π_ss,init_ρ,i_ss,ι_ss+ δ,
+    SS_vec = [C_ss,k_ss,π_ss,ρ_ss,i_ss,ι_ss+ δ,
                 ℓ_ss,
-                A*(ℓ_ss)^(1.0-α)*(k_ss)^(α)]
+                Y.(C_ss,k_ss,q_ss),i_ss-π_ss]
     return (sol=sol1,SS=SS_vec,initial=init,t=u.t)
 end
 
-function plot_IRF_quad(;pos =[1,2,3,4,5,6,7,8],solution)
-    val =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y"]
+@unpack T,ϕ,dt   = define_env()
+
+function plot_IRF_quad(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r"],
+                        solution,T_end=T)
+    N_end=T_end/dt+1
+    val =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r"]
+    pos=(zeros(length(var)))
+    for k in 1:length(var)
+        pos[k]=findfirst(isequal(var[k]),val)
+    end
+    pos=round.(Int, pos)
     val =val[pos]
     lab=[latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
     lab=reshape(lab,(1,length(val)))
@@ -130,35 +143,36 @@ function plot_IRF_quad(;pos =[1,2,3,4,5,6,7,8],solution)
     dev =   ((solution.sol.-SS)./SS)*100
 
      
-    pp = [dev[k,:] for k in pos]
+    pp = [dev[k,1:round(Int,N_end)] for k in pos]
 
-    p=plot(solution.t,pp,
+    p=plot(solution.t[1:round(Int,N_end)],pp,
         label=lab,
         xlabel=L"t",
-        legendfontsize=7,
+        legendfontsize=8,
         ylabel=L"\%",
-        legend=:topright)
+        legend=:outertopright)
     display(p)
     return(p)
 end
 
 
-function compute_dev_quad(;θ,T,κ)
+function compute_dev_quad(;n,θ,T,κ)
         solution=solve_system_quad(;params=define_env(θ=θ,κ=κ))
-        SS  =   solution.SS[end]
-        dev =   ((solution.sol[end,:].-SS)./SS)*100
+        SS  =   solution.SS[n]
+        dev =   ((solution.sol[n,:].-SS)./SS)*100
         cum = sum(dev[1:floor(Int,T)])
         return (impact=dev[1],cum=cum)
 end
 
-@unpack T = define_env()
 
-function plot_θ_cum_quad(;theta_range=range(.1,500,length=10),
-                T_range=[T],κ_range=[1.0,5,50,500.0,5*10.0^6.0])
+function plot_θ_cum_quad(;var="Y",theta_range=range(.1,500,length=10),ϕ=ϕ,
+                T_range=[T],κ_range=[5.0,50,500.0,5000])
+    val =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r"]
+    n=findfirst(isequal(var), val)
     N   = length(T_range)*length(κ_range)    
     lab=[latexstring("\$T={$(T)},\\kappa={$(κ)}\$") for (T,κ) in Iterators.product(T_range, κ_range)][:]
     lab=reshape(lab,1,N)
-    y = [[compute_dev_quad(;θ=θ,T=T,κ=κ).cum for θ in theta_range] for (T,κ) in Iterators.product(T_range, κ_range)]
+    y = [[compute_dev_quad(;n=n,θ=θ,T=T,κ=κ).cum for θ in theta_range] for (T,κ) in Iterators.product(T_range, κ_range)]
     y = reshape(y,1,N)[:]
     y_pp= y[1]
 
@@ -169,10 +183,11 @@ function plot_θ_cum_quad(;theta_range=range(.1,500,length=10),
             y_pp, 
             label=lab,
             xlabel=L"\theta", 
-            ylabel=L"\sum_{t=1}{T}\widehat{{Y}}_{t}(\%)",
+            ylabel=latexstring("\$\\sum_{t=1}{T}\\widehat{{$(val[n])}}_{t}\\left(\\%,\\phi=$(ϕ)\\right)\$"),
             legendfontsize=7,
             palette = palette([:blue,:red],N),
-            legend=:bottomright)
-    savefig(p,"theta_cum_$(T_range[1]).svg")
+            legend=:outertopright)
+    savefig(p,"theta_cum_$(val[n])_$(T_range[1]).svg")
     display(p)
 end
+
