@@ -13,10 +13,10 @@ include("params_def.jl")
 include("Functions.jl")
 include("Function_quadratic.jl")
 
-solution=solve_system_quad(;params=define_env(κ=3))
-plot_IRF_quad(;var =["k","\\pi","\\iota","Y"],solution=solution,T_end=150)
+@time solution=solve_system_quad(;params=define_env(κ=10))
+plot_IRF_quad(;var =["k","\\iota","Y"],solution=solution,T_end=200)
 
-plot_θ_cum_quad(;var="Y",theta_range=range(.1,500,length=2),κ_range=[10,10000],T_range=[0])
+@time plot_θ_cum_quad(;var="Y",theta_range=range(.1,500,length=2),κ_range=[10,10000],T_range=[0])
 
 plot_θ_cum_quad(;theta_range=range(.1,500,length=10),T_range=[1])
 

@@ -78,30 +78,35 @@ end
                 ι_ss=0.0)    
     end
 
-
+    function u_0(p)
+        @unpack q_ss,C_ss,k_ss,π_ss,i_ss,ℓ_ss,ι_ss = SS(p)
+        @unpack init_ρ  =   p
+    return ([q_ss,C_ss,k_ss,π_ss,p.init_ρ,i_ss])
+    end
 
     p  =    (σ=params.σ,ϵ=params.ϵ,θ=params.θ,
             ϕ=params.ϕ,ψ=params.ψ,ρ̄=params.ρ̄,θᵨ=params.θᵨ,
             θᵢ=params.θᵢ,κ=params.κ,δ=params.δ,A=params.A,
             χₙ=params.χₙ,γ=params.γ,α=params.α,init_ρ=params.init_ρ)
 
-    @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss,ℓ_ss,ι_ss= SS(p)
     function bc1!(residual,u,p,t)
-        @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss= SS(p)
-        @unpack init_ρ  =   p
-        residual[1] =   u[end][1]- q_ss
-        residual[2] =   u[end][2]- C_ss
-        residual[3] =   u[1][3]- k_ss
-        residual[4] =   u[end][4]- π_ss
-        residual[5] =   u[1][5]- init_ρ
-        residual[6] =   u[1][6]- i_ss
+            @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss= SS(p)
+            @unpack init_ρ  =   p
+            residual[1] =   u[end][1]- q_ss
+            residual[2] =   u[end][2]- C_ss
+            residual[3] =   u[1][3]- k_ss
+            residual[4] =   u[end][4]- π_ss
+            residual[5] =   u[1][5]- init_ρ
+            residual[6] =   u[1][6]- i_ss
     end
-    bvp1 = TwoPointBVProblem(NK!, bc1!, [q_ss,C_ss,k_ss,π_ss,p.init_ρ,i_ss], (0.0,T),(p))
 
-     u = solve(bvp1, MIRK4(), dt=dt)
+    bvp1 = TwoPointBVProblem(NK!, bc1!, u_0(p), (0.0,params.T),(p))
+
+    u = solve(bvp1, MIRK4(), dt=dt)
     
     function result(u,p)
     @unpack δ =p
+    @unpack q_ss,C_ss,k_ss,π_ss,i_ss,ℓ_ss,ι_ss,ρ_ss = SS(p)
     q=@view u[1,:][:]
     C=@view u[2,:][:]
     k=@view u[3,:][:]
@@ -130,6 +135,7 @@ end
     SS_vec[9]=i_ss-π_ss
     return(SS_vec=SS_vec,sol1=sol1)
     end
+
 
     @unpack sol1,SS_vec = result(u,p)
     return (sol=sol1,SS=SS_vec,t=u.t)
@@ -173,7 +179,7 @@ function compute_dev_quad(;n,θ,T,κ)
         dev =   (((@view solution.sol[n,:]).-SS)./SS)*100
         N=T/dt+1
         cum = sum(@view dev[1:floor(Int,N)])
-        return (impact=dev[1],cum=cum)
+        return (cum)
 end
 
 
@@ -184,7 +190,7 @@ function plot_θ_cum_quad(;var="Y",theta_range=range(.1,500,length=10),ϕ=ϕ,
     N   = length(T_range)*length(κ_range)    
     lab=[latexstring("\$T={$(T)},\\kappa={$(κ)}\$") for (T,κ) in Iterators.product(T_range, κ_range)][:]
     lab=reshape(lab,1,N)
-    y = [[compute_dev_quad(;n=n,θ=θ,T=T,κ=κ).cum for θ in theta_range] for (T,κ) in Iterators.product(T_range, κ_range)]
+    y = [[compute_dev_quad(;n=n,θ=θ,T=T,κ=κ) for θ in theta_range] for (T,κ) in Iterators.product(T_range, κ_range)]
     y = reshape(y,1,N)[:]
     y_pp= y[1]
 

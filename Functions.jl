@@ -29,9 +29,17 @@ function solve_system(;params)
 
         return (ρ_ss=ρ_ss,π_ss=π_ss,i_ss=i_ss,x_ss=x_ss)
     end
-    @unpack T,dt,init_ρ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,γ,init_ρ = params
+    
+    function u_0(p)
+    @unpack π_ss,i_ss,x_ss = SS(p)
+    @unpack init_ρ  =   p
+    return ([x_ss,π_ss,i_ss,init_ρ])
+    end
 
-    p  =(σ=σ,ϵ=ϵ,θ=θ,ϕ=ϕ,ψ=ψ,ρ̄=ρ̄,θᵨ=θᵨ,θᵢ=θᵢ,γ=γ,init_ρ=init_ρ)
+
+    p  =(σ=params.σ,ϵ=params.ϵ,θ=params.θ,
+        ϕ=params.ϕ,ψ=params.ψ,ρ̄=params.ρ̄,θᵨ=params.θᵨ,θᵢ=params.θᵢ,
+        γ=params.γ,init_ρ=params.init_ρ)
 
 
     function bc1!(residual,u,p,t)
@@ -43,18 +51,16 @@ function solve_system(;params)
         residual[4] =   u[1][4]- init_ρ
     end
 
-    @unpack ρ_ss,π_ss,i_ss,x_ss= SS(p)
-    @unpack T,dt,init_ρ = params
-
-    SS_vec = [x_ss,π_ss,i_ss,ρ_ss]
-
-    u0    =   [x_ss,π_ss,i_ss,init_ρ]
-    tspan   =   (0.0,T)
     
-    bvp1 = TwoPointBVProblem(NK_Rote!, bc1!, u0, tspan,(p))
+    function SS_vec(p)
+    @unpack ρ_ss,π_ss,i_ss,x_ss= SS(p)
+    return([x_ss,π_ss,i_ss,ρ_ss])
+    end
 
+    @unpack T,dt,init_ρ = params
+    bvp1 = TwoPointBVProblem(NK_Rote!, bc1!,u_0(p), (0.0,T),(p))
     sol1 = solve(bvp1, MIRK4(), dt=dt)
-    return (sol=sol1,SS=SS_vec,t=sol1.t)
+    return (sol=sol1,SS=SS_vec(p),t=sol1.t)
 end
 
 function plot_IRF(;pos =[1,2,3,4],solution)
