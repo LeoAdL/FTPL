@@ -1,7 +1,7 @@
 function solve_system_quad(;params)
 
 function static_funct(p)
-    @unpack  σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ =   p
+    @unpack  σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ,α =   p
     function ι(q::Float64)
         return((q-1.0)/κ)
     end
@@ -80,13 +80,13 @@ end
 
 
     @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss,ℓ_ss,ι_ss= SS()
-    @unpack T,dt,init_ρ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ,γ = params
+    @unpack T,dt,init_ρ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ,γ,α = params
 
     SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
 
     u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
     tspan   =   (0.0,T)
-    p  =    (σ=σ,ϵ=ϵ,θ=θ,ϕ=ϕ,ψ=ψ,ρ̄=ρ̄,θᵨ=θᵨ,θᵢ=θᵢ,κ=κ,δ=δ,A=A,χₙ=χₙ,γ=γ)
+    p  =    (σ=σ,ϵ=ϵ,θ=θ,ϕ=ϕ,ψ=ψ,ρ̄=ρ̄,θᵨ=θᵨ,θᵢ=θᵢ,κ=κ,δ=δ,A=A,χₙ=χₙ,γ=γ,α=α)
 
     function bc1!(residual,u,p,t)
         @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss= SS()
@@ -105,8 +105,6 @@ end
     
     du = similar(u0)
 
-    @time NK!(du,u0,p,10.0)
-
     q=u[1,:][:]
     C=u[2,:][:]
     k=u[3,:][:]
@@ -117,6 +115,7 @@ end
     sol1[1:5,:]  = u[2:end,:]
 
     @unpack δ,A =   params
+    @unpack ι,ℓ,w,ν_k,χ,Y=static_funct(p)
 
     sol1[6,:] =   ι.(q) .+ δ
     sol1[7,:] =   ℓ.(C,k,q)
