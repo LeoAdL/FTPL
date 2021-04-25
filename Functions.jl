@@ -1,5 +1,3 @@
-@unpack T,ϕ,dt   = params
-
 function solve_system(;params)
     function NK_Rote!(du,u,p,t)
         @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ =   p
@@ -13,7 +11,7 @@ function solve_system(;params)
 
         du[1]  =   σ*(i-π-ρ)*x
         
-        du[2]  =   -(ϵ-1.0)/θ*(x^(1.0\σ+ψ)-1.0)+π*((1.0-σ)*(i-π)+σ*ρ)
+        du[2]  =   -(ϵ-1.0)/θ*(x^(1.0/σ+ψ)-1.0)+π*((1.0-σ)*(i-π)+σ*ρ)
 
         du[3]  =   -θᵢ*(i-ϕ*π)
 
@@ -65,6 +63,7 @@ function solve_system(;params)
     return (sol=sol1,SS=SS_vec(p),t=sol1.t)
 end
 
+@unpack T,ϕ,dt   = pp
 
 function plot_IRF(;var =["x","\\pi","i","\\rho"],
                         solution,T_end=T)
@@ -109,7 +108,7 @@ function plot_θ_cum(;var="x",θ_range=range(.1,500,length=10),ϕ=ϕ,
     val =["x","\\pi","i","\\rho"]
     n=findfirst(isequal(var), val)
     N   = length(T_range)  
-    lab=[latexstring("\$T={$(T)}") for (T) in T_range]
+    lab=[latexstring("\$T={$(T)}\$") for T in T_range]
     lab=reshape(lab,1,N)
 
     y = similar(zeros(length(θ_range),N))
@@ -117,17 +116,12 @@ function plot_θ_cum(;var="x",θ_range=range(.1,500,length=10),ϕ=ϕ,
     for θ in θ_range
         j=j+1
         k=0
-        solution=solve_system(;params=define_env(θ=θ,T=T,dt=dt,ϕ=ϕ))
+        solution=solve_system(;params=define_env(θ=θ,T=T,N_t=T/dt,ϕ=ϕ))
             for T in T_range
             k = k+1
             y[j,k] = compute_dev_quad(;solution=solution,n=n,T=T)
         end
     end
-    lines=[:dash for k in 1:N]
-    for k in 1:floor(Int,N/2)
-        lines[2*k] = :solid
-    end
-    lines = reshape(lines,1,N)
     p=plot(θ_range,
             y, 
             label=lab,
@@ -135,7 +129,6 @@ function plot_θ_cum(;var="x",θ_range=range(.1,500,length=10),ϕ=ϕ,
             ylabel=latexstring("\$\\sum_{t=0}{T}\\widehat{{$(val[n])}}_{t}\\left(\\%,\\phi=$(ϕ)\\right)\$"),
             legendfontsize=7,
             palette = palette([:blue,:red],N),
-            linestyle = lines,
             legend=:outertopright)
     savefig(p,"theta_cum_$(val[n])_$(T_range[1]).svg")
     display(p)

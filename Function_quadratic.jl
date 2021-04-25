@@ -1,5 +1,3 @@
-@unpack T,ϕ,dt   = params
-
 function solve_system_quad(;params)
 
 function static_funct(p)
@@ -143,6 +141,7 @@ end
     return (sol=sol1,SS=SS_vec,t=u.t)
 end
 
+@unpack T,ϕ,dt   = pp
 
 function plot_IRF_quad(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r"],
                         solution,T_end=T)
@@ -197,7 +196,7 @@ function plot_θ_cum_quad(;var="Y",θ_range=range(.1,500,length=10),ϕ=ϕ,
         j=j+1
         k=0
         for κ in κ_range
-        solution=solve_system_quad(;params=define_env(θ=θ,κ=κ,T=T,dt=dt,ϕ=ϕ))
+        solution=solve_system_quad(;params=define_env(θ=θ,κ=κ,T=T,N_t=T/dt,ϕ=ϕ))
             for T in T_range
             k = k+1
             y[j,k] = compute_dev_quad(;solution=solution,n=n,T=T)
