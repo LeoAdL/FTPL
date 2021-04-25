@@ -100,12 +100,11 @@ end
         residual[5] =   u[1][5]- init_ρ
         residual[6] =   u[1][6]- i_ss
     end
-
     bvp1 = TwoPointBVProblem(NK!, bc1!, u0, tspan,(p))
 
      u = solve(bvp1, MIRK4(), dt=dt)
     
-
+    function result(u,p)
     q=@view u[1,:][:]
     C=@view u[2,:][:]
     k=@view u[3,:][:]
@@ -121,11 +120,22 @@ end
     sol1[7,:] =   ℓ.(C,k,q)
     sol1[8,:] =   Y.(C,k,q)
     sol1[9,:] =   i.-π
+    
+    SS_vec=similar(sol1[:,1])
+    SS_vec[1]=C_ss
+    SS_vec[2]=k_ss
+    SS_vec[3]=π_ss
+    SS_vec[4]=ρ_ss
+    SS_vec[5]=i_ss
+    SS_vec[6]=ι_ss+ δ
+    SS_vec[7]=ℓ_ss
+    SS_vec[8]=Y.(C_ss,k_ss,q_ss)
+    SS_vec[9]=i_ss-π_ss
+    return(SS_vec=SS_vec,sol1=sol1)
+    end
 
-    SS_vec = [C_ss,k_ss,π_ss,ρ_ss,i_ss,ι_ss+ δ,
-                ℓ_ss,
-                Y.(C_ss,k_ss,q_ss),i_ss-π_ss]
-    return (sol=sol1,SS=SS_vec,initial=init,t=u.t)
+    @unpack sol1,SS_vec = result(u,p)
+    return (sol=sol1,SS=SS_vec,initial=u0,t=u.t)
 end
 
 @unpack T,ϕ,dt   = define_env()
