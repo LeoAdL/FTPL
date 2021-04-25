@@ -1,6 +1,6 @@
 function solve_system(;params)
     function NK_Rote!(du,u,p,t)
-        @unpack σ,ϵ,θ,σ,ϕ,ψ,ρ̄,θᵨ,θᵢ =   params
+        @unpack σ,ϵ,θ,σ,ϕ,ψ,ρ̄,θᵨ,θᵢ =   p
         x    =   u[1]
 
         π   =   u[2]
@@ -29,6 +29,9 @@ function solve_system(;params)
 
         return (ρ_ss=ρ_ss,π_ss=π_ss,i_ss=i_ss,x_ss=x_ss)
     end
+    @unpack T,dt,init_ρ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,δ,γ = params
+
+    p  =    (σ=σ,ϵ=ϵ,θ=θ,ϕ=ϕ,ψ=ψ,ρ̄=ρ̄,θᵨ=θᵨ,θᵢ=θᵢ,γ=γ)
 
     function bc1!(residual,u,p,t)
         @unpack ρ_ss,π_ss,i_ss,x_ss= SS()
@@ -46,8 +49,7 @@ function solve_system(;params)
 
     init    =   [x_ss,π_ss,i_ss,init_ρ]
     tspan   =   (0.0,T)
-
-
+    
     bvp1 = TwoPointBVProblem(NK_Rote!, bc1!, init, tspan)
 
     sol1 = solve(bvp1, MIRK4(), dt=dt)
