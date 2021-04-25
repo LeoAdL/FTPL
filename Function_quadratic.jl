@@ -173,8 +173,7 @@ function plot_IRF_quad(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r
 end
 
 
-function compute_dev_quad(;n,θ,T,κ)
-        solution=solve_system_quad(;params=define_env(θ=θ,κ=κ))
+function compute_dev_quad(;solution,n,T)
         SS  =   solution.SS[n]
         dev =   (((@view solution.sol[n,:]).-SS)./SS)*100
         N=T/dt+1
@@ -183,29 +182,42 @@ function compute_dev_quad(;n,θ,T,κ)
 end
 
 
-function plot_θ_cum_quad(;var="Y",theta_range=range(.1,500,length=10),ϕ=ϕ,
-                T_range=[T],κ_range=[5.0,50,500.0,5000])
+function plot_θ_cum_quad(;var="Y",θ_range=range(.1,500,length=10),ϕ=ϕ,
+                T_range=[T],κ_range=[3,30,300])
     val =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r"]
     n=findfirst(isequal(var), val)
     N   = length(T_range)*length(κ_range)    
     lab=[latexstring("\$T={$(T)},\\kappa={$(κ)}\$") for (T,κ) in Iterators.product(T_range, κ_range)][:]
     lab=reshape(lab,1,N)
-    y = [[compute_dev_quad(;n=n,θ=θ,T=T,κ=κ) for θ in theta_range] for (T,κ) in Iterators.product(T_range, κ_range)]
-    y = reshape(y,1,N)[:]
-    y_pp= y[1]
 
-    for n in 2:N
-        y_pp=hcat(y_pp,y[n])
+    y = similar(zeros(length(θ_range),N))
+    j=0
+    for θ in θ_range
+        j=j+1
+        k=0
+        for κ in κ_range
+        solution=solve_system_quad(;params=define_env(θ=θ,κ=κ))
+            for T in T_range
+            k = k+1
+            y[j,k] = compute_dev_quad(;solution=solution,n=n,T=T)
+            end
+        end
     end
-    p=plot(theta_range,
-            y_pp, 
+    lines=[:dash for k in 1:N]
+    for k in 1:floor(Int,N/2)
+        lines[2*k] = :solid
+    end
+    lines = reshape(lines,1,N)
+    p=plot(θ_range,
+            y, 
             label=lab,
             xlabel=L"\theta", 
             ylabel=latexstring("\$\\sum_{t=0}{T}\\widehat{{$(val[n])}}_{t}\\left(\\%,\\phi=$(ϕ)\\right)\$"),
             legendfontsize=7,
             palette = palette([:blue,:red],N),
+            linestyle = lines,
             legend=:outertopright)
-    savefig(p,"theta_cum_$(val[n])_$(T_range[1]).svg")
+    savefig(p,"theta_cum_$(val[n])_$(T_range[1])_quad.svg")
     display(p)
 end
 

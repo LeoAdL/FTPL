@@ -63,56 +63,80 @@ function solve_system(;params)
     return (sol=sol1,SS=SS_vec(p),t=sol1.t)
 end
 
-function plot_IRF(;pos =[1,2,3,4],solution)
+@unpack T,ϕ,dt   = define_env()
+
+function plot_IRF(;var =["x","\\pi","i","\\rho"],
+                        solution,T_end=T)
+    N_end=T_end/dt+1
     val =["x","\\pi","i","\\rho"]
+    pos=(zeros(length(var)))
+    for k in 1:length(var)
+        pos[k]=findfirst(isequal(var[k]),val)
+    end
+    pos=round.(Int, pos)
     val =val[pos]
     lab=[latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
     lab=reshape(lab,(1,length(val)))
 
     SS  =   solution.SS
-    dev =   ((solution.sol[1:end].-SS)./SS)*100
+    dev =   ((solution.sol.-SS)./SS)*100
 
      
-    pp = [dev'[:,k] for k in pos]
+    pp = [dev[k,1:round(Int,N_end)] for k in pos]
 
-    p=plot(solution.t,pp,
+    p=plot(solution.t[1:round(Int,N_end)],pp,
         label=lab,
-        xlabel=L"t", 
+        xlabel=L"t",
+        legendfontsize=8,
         ylabel=L"\%",
-        legend=:topright)
+        legend=:outertopright)
     display(p)
     return(p)
 end
 
 
-function compute_dev(;θ,T)
+function compute_dev_quad(;solution,n,T)
+        SS  =   solution.SS[n]
+        dev =   (((@view solution.sol[n,:]).-SS)./SS)*100
+        N=T/dt+1
+        cum = sum(@view dev[1:floor(Int,N)])
+        return (cum)
+end
+
+function plot_θ_cum(;var="x",θ_range=range(.1,500,length=10),ϕ=ϕ,
+                T_range=[T])
+    val =["x","\\pi","i","\\rho"]
+    n=findfirst(isequal(var), val)
+    N   = length(T_range)  
+    lab=[latexstring("\$T={$(T)}") for (T) in T_range]
+    lab=reshape(lab,1,N)
+
+    y = similar(zeros(length(θ_range),N))
+    j=0
+    for θ in θ_range
+        j=j+1
+        k=0
         solution=solve_system(;params=define_env(θ=θ))
-        SS  =   solution.SS[1]
-        dev =   ((solution.sol[1,1:end].-SS)./SS)*100
-        cum = sum(dev[1:floor(Int,T)])
-        return (impact=dev[1],cum=cum)
-end
-
-function plot_θ_impact(;theta_range=range(10^(-3),500,length=10))
-    p=plot(theta_range,
-            [compute_dev(;θ=θ,T=T).impact for θ in theta_range], 
+            for T in T_range
+            k = k+1
+            y[j,k] = compute_dev_quad(;solution=solution,n=n,T=T)
+        end
+    end
+    lines=[:dash for k in 1:N]
+    for k in 1:floor(Int,N/2)
+        lines[2*k] = :solid
+    end
+    lines = reshape(lines,1,N)
+    p=plot(θ_range,
+            y, 
+            label=lab,
             xlabel=L"\theta", 
-            ylabel=L"\%",
-            legend=:bottomright,
-            palette = palette([:blue,:red], length(theta_range)))
-    savefig(p,"theta.svg")
+            ylabel=latexstring("\$\\sum_{t=0}{T}\\widehat{{$(val[n])}}_{t}\\left(\\%,\\phi=$(ϕ)\\right)\$"),
+            legendfontsize=7,
+            palette = palette([:blue,:red],N),
+            linestyle = lines,
+            legend=:outertopright)
+    savefig(p,"theta_cum_$(val[n])_$(T_range[1]).svg")
     display(p)
 end
 
-function plot_θ_cum(;theta_range=range(1,500,length=10),
-                T_range=[1,2,4,10,20,50])
-    p=plot(theta_range,
-            [[compute_dev(;θ=θ,T=T).cum for θ in theta_range] for T in T_range], 
-            label=[latexstring("\$T={$(T)}\$") for T in T_range'],
-            xlabel=L"\theta", 
-            ylabel=L"\sum_{t=1}^{T}\widehat{{x}}_{t}(\%)",
-            legend=:topleft,
-            palette = palette([:blue,:red], length(T_range)))
-    savefig(p,"theta_cum.svg")
-    display(p)
-end
