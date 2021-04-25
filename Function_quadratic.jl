@@ -102,7 +102,7 @@ end
 
     bvp1 = TwoPointBVProblem(NK!, bc1!, u_0(p), (0.0,params.T),(p))
 
-    u = solve(bvp1, MIRK4(), dt=dt)
+    u = solve(bvp1, MIRK4(), dt=params.dt)
     
     function result(u,p)
     @unpack δ =p
