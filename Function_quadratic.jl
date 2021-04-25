@@ -1,39 +1,39 @@
 function solve_system_quad(;params)
-    function ι(q)
-        @unpack κ=params
+
+function static_funct(p)
+    @unpack  σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ =   p
+    function ι(q::Float64)
         return((q-1.0)/κ)
     end
 
-    function ℓ(C,k,q)
-        @unpack κ,α,A=params
+    function ℓ(C::Float64,k::Float64,q::Float64)
         return(k*((C/k+ι(q)+κ*(ι(q))^(2.0)/2.0)/A)^(1.0/(1.0-α)))
     end
 
-    function w(C,k,q)
-        @unpack γ,ψ =   params
+    function w(C::Float64,k::Float64,q::Float64)
         return (ℓ(C,k,q)^(ψ)*C^(γ))
     end
 
 
-    function ν_k(C,k,q)
-        @unpack α=params
+    function ν_k(C::Float64,k::Float64,q::Float64)
         return((1.0/q)*(α/(1.0-α))*w(C,k,q)*(ℓ(C,k,q)/k))
     end
         
-    function χ(C,k,q)
-        @unpack α=params
+    function χ(C::Float64,k::Float64,q::Float64)
         return((w(C,k,q)/(1.0-α))^(1.0-α)*(q*ν_k(C,k,q)/α)^(α))
     end
 
-    function Y(C,k,q)
-        @unpack α,A=params
+    function Y(C::Float64,k::Float64,q::Float64)
         return(A*(k)^(α)*(ℓ(C,k,q))^(1-α))
     end
+    return (ι=ι,ℓ=ℓ,w=w,ν_k=ν_k,χ=χ,Y=Y)
+end
+
 
 
     function NK!(du,u,p,t)
-        @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A =   params
-            χₙ=A*(ϵ-1.0)/ϵ
+         σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ =   p
+         @unpack ι,ℓ,w,ν_k,χ,Y=static_funct(p)
             q=u[1]
             C=u[2]
             k=u[3]
@@ -58,9 +58,9 @@ function solve_system_quad(;params)
     function SS()
         @unpack α,γ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A =   params
 
-                    k_c=(α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
+            k_c=(α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
     
-                    k_l=(A*k_c)^(1.0/(1.0-α))
+            k_l=(A*k_c)^(1.0/(1.0-α))
 
             q_ss=1.0
             k_ss=(ρ̄*((1-α)/α)*(k_l)^(1+ψ)*(k_c)^(γ))^(1/(ψ+γ))
@@ -78,6 +78,16 @@ function solve_system_quad(;params)
                 ι_ss=0.0)    
     end
 
+
+    @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss,ℓ_ss,ι_ss= SS()
+    @unpack T,dt,init_ρ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ,γ = params
+
+    SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
+
+    u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
+    tspan   =   (0.0,T)
+    p  =    (σ=σ,ϵ=ϵ,θ=θ,ϕ=ϕ,ψ=ψ,ρ̄=ρ̄,θᵨ=θᵨ,θᵢ=θᵢ,κ=κ,δ=δ,A=A,χₙ=χₙ,γ=γ)
+
     function bc1!(residual,u,p,t)
         @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss= SS()
         @unpack init_ρ  =   params
@@ -89,18 +99,13 @@ function solve_system_quad(;params)
         residual[6] =   u[1][6]- i_ss
     end
 
-    @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss,ℓ_ss,ι_ss= SS()
-    @unpack T,dt,init_ρ,α = params
-
-    SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
-
-    u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
-    tspan   =   (0.0,T)
-    
-    
-    bvp1 = TwoPointBVProblem(NK!, bc1!, u0, tspan)
+    bvp1 = TwoPointBVProblem(NK!, bc1!, u0, tspan,(p))
 
     u = solve(bvp1, MIRK4(), dt=dt)
+    
+    du = similar(u0)
+
+    @time NK!(du,u0,p,10.0)
 
     q=u[1,:][:]
     C=u[2,:][:]
@@ -160,7 +165,8 @@ function compute_dev_quad(;n,θ,T,κ)
         solution=solve_system_quad(;params=define_env(θ=θ,κ=κ))
         SS  =   solution.SS[n]
         dev =   ((solution.sol[n,:].-SS)./SS)*100
-        cum = sum(dev[1:floor(Int,T)])
+        N=T/dt+1
+        cum = sum(dev[1:floor(Int,N)])
         return (impact=dev[1],cum=cum)
 end
 
@@ -183,7 +189,7 @@ function plot_θ_cum_quad(;var="Y",theta_range=range(.1,500,length=10),ϕ=ϕ,
             y_pp, 
             label=lab,
             xlabel=L"\theta", 
-            ylabel=latexstring("\$\\sum_{t=1}{T}\\widehat{{$(val[n])}}_{t}\\left(\\%,\\phi=$(ϕ)\\right)\$"),
+            ylabel=latexstring("\$\\sum_{t=0}{T}\\widehat{{$(val[n])}}_{t}\\left(\\%,\\phi=$(ϕ)\\right)\$"),
             legendfontsize=7,
             palette = palette([:blue,:red],N),
             legend=:outertopright)

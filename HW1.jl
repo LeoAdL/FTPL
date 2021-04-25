@@ -13,11 +13,11 @@ include("params_def.jl")
 include("Functions.jl")
 include("Function_quadratic.jl")
 
-solution=solve_system_quad(;params=define_env(κ=.01))
+@time solve_system_quad(;params=define_env())
 
-plot_IRF_quad(;var =["Y"],solution=solution)
+plot_IRF_quad(;var=["\\iota"],solution=solution)
 
-plot_θ_cum_quad(;var="Y",theta_range=range(.1,500,length=3),κ_range=[1,10,100])
+plot_θ_cum_quad(;var="Y",theta_range=range(.1,100,length=3),κ_range=[3,10,100])
 
 plot_θ_cum_quad(;theta_range=range(.1,500,length=10),T_range=[1])
 

@@ -9,9 +9,9 @@ function define_env(;ρ̄      =  2.2/100,
                      ϵ      =   11,
                      ψ      =   1/2.0,
                      ϕ      =   1.25,
-                     γ      =   2.0,
-                     T      =   300.0,
-                     N_t    =   100.0,
+                     γ      =   1.0,
+                     T      =   300,
+                     N_t    =   300,
                      κ      =   3.0,
                      δ      =   .1,
                      α      =   1/3,
@@ -19,6 +19,7 @@ function define_env(;ρ̄      =  2.2/100,
     init_ρ =   ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))/10
     σ   =   1/γ
     dt  =   T/N_t
+    χₙ=A*(ϵ-1.0)/ϵ
     
     params  =   @with_kw (ρ̄      =  ρ̄,
                      θᵨ     =   θᵨ,
@@ -35,6 +36,7 @@ function define_env(;ρ̄      =  2.2/100,
                      α      =   α,
                      A      =   A,
                      dt     =   dt,
+                     χₙ     =   χₙ,
                      init_ρ=init_ρ)
     return params
 end
