@@ -19,8 +19,8 @@ function solve_system(;params)
         
     end
 
-    function SS()
-        @unpack σ,ϵ,θ,σ,ϕ,ψ,ρ̄,θᵨ,θᵢ =   params
+    function SS(p)
+        @unpack σ,ϵ,θ,σ,ϕ,ψ,ρ̄,θᵨ,θᵢ =   p
 
         ρ_ss    =   ρ̄
         π_ss    =   ρ̄/(ϕ-1.0)
@@ -29,13 +29,13 @@ function solve_system(;params)
 
         return (ρ_ss=ρ_ss,π_ss=π_ss,i_ss=i_ss,x_ss=x_ss)
     end
-    @unpack T,dt,init_ρ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,δ,γ = params
+    @unpack T,dt,init_ρ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,δ,γ,init_ρ = params
 
-    p  =    (σ=σ,ϵ=ϵ,θ=θ,ϕ=ϕ,ψ=ψ,ρ̄=ρ̄,θᵨ=θᵨ,θᵢ=θᵢ,γ=γ)
+    p  =    (σ=σ,ϵ=ϵ,θ=θ,ϕ=ϕ,ψ=ψ,ρ̄=ρ̄,θᵨ=θᵨ,θᵢ=θᵢ,γ=γ,init_ρ=init_ρ)
 
     function bc1!(residual,u,p,t)
-        @unpack ρ_ss,π_ss,i_ss,x_ss= SS()
-        @unpack init_ρ  =   params
+        @unpack ρ_ss,π_ss,i_ss,x_ss= SS(p)
+        @unpack init_ρ  =   p
         residual[1] =   u[end][1]- x_ss
         residual[2] =   u[end][2]- π_ss
         residual[3] =   u[1][3]- i_ss

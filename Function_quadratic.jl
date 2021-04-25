@@ -55,8 +55,8 @@ end
         
     end
 
-    function SS()
-        @unpack α,γ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A =   params
+    function SS(p)
+        @unpack α,γ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A =   p
 
             k_c=(α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
     
@@ -79,18 +79,20 @@ end
     end
 
 
-    @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss,ℓ_ss,ι_ss= SS()
-    @unpack T,dt,init_ρ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ,γ,α = params
+    @unpack T,dt,init_ρ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ,γ,α,init_ρ = params
 
-    SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
+    p  =    (σ=σ,ϵ=ϵ,θ=θ,ϕ=ϕ,ψ=ψ,ρ̄=ρ̄,θᵨ=θᵨ,θᵢ=θᵢ,κ=κ,δ=δ,A=A,χₙ=χₙ,γ=γ,α=α,init_ρ=init_ρ)
 
-    u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
-    tspan   =   (0.0,T)
-    p  =    (σ=σ,ϵ=ϵ,θ=θ,ϕ=ϕ,ψ=ψ,ρ̄=ρ̄,θᵨ=θᵨ,θᵢ=θᵢ,κ=κ,δ=δ,A=A,χₙ=χₙ,γ=γ,α=α)
+    @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss,ℓ_ss,ι_ss= SS(p)
+
+     SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
+
+     u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
+     tspan   =   (0.0,T)
 
     function bc1!(residual,u,p,t)
-        @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss= SS()
-        @unpack init_ρ  =   params
+        @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss= SS(p)
+        @unpack init_ρ  =   p
         residual[1] =   u[end][1]- q_ss
         residual[2] =   u[end][2]- C_ss
         residual[3] =   u[1][3]- k_ss
@@ -101,20 +103,18 @@ end
 
     bvp1 = TwoPointBVProblem(NK!, bc1!, u0, tspan,(p))
 
-    u = solve(bvp1, MIRK4(), dt=dt)
+     u = solve(bvp1, MIRK4(), dt=dt)
     
-    du = similar(u0)
 
-    q=u[1,:][:]
-    C=u[2,:][:]
-    k=u[3,:][:]
-    π=u[4,:][:]
-    i=u[6,:][:] 
+    q=@view u[1,:][:]
+    C=@view u[2,:][:]
+    k=@view u[3,:][:]
+    π=@view u[4,:][:]
+    i=@view u[6,:][:] 
 
     sol1  =   similar(zeros(size(u)[1]+3,size(u)[2]))
-    sol1[1:5,:]  = u[2:end,:]
+    sol1[1:5,:]  =@view u[2:end,:]
 
-    @unpack δ,A =   params
     @unpack ι,ℓ,w,ν_k,χ,Y=static_funct(p)
 
     sol1[6,:] =   ι.(q) .+ δ
