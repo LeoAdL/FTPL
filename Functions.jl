@@ -1,3 +1,5 @@
+@unpack T,ϕ,dt   = params
+
 function solve_system(;params)
     function NK_Rote!(du,u,p,t)
         @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ =   p
@@ -63,7 +65,6 @@ function solve_system(;params)
     return (sol=sol1,SS=SS_vec(p),t=sol1.t)
 end
 
-@unpack T,ϕ,dt   = define_env()
 
 function plot_IRF(;var =["x","\\pi","i","\\rho"],
                         solution,T_end=T)
@@ -116,7 +117,7 @@ function plot_θ_cum(;var="x",θ_range=range(.1,500,length=10),ϕ=ϕ,
     for θ in θ_range
         j=j+1
         k=0
-        solution=solve_system(;params=define_env(θ=θ))
+        solution=solve_system(;params=define_env(θ=θ,T=T,dt=dt,ϕ=ϕ))
             for T in T_range
             k = k+1
             y[j,k] = compute_dev_quad(;solution=solution,n=n,T=T)

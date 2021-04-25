@@ -10,14 +10,15 @@ using DifferentialEquations
 
 
 include("params_def.jl")
+params =define_env(T=100,N_t=100)
 include("Functions.jl")
-include("Function_quadratic.jl")
-@unpack T=define_env(κ=10)
 
-solutionNK=solve_system(;params=define_env())
+solutionNK=solve_system()
 
 plot_IRF(solution=solutionNK,var=["x","\\pi","i"])
 
+params =define_env()
+include("Function_quadratic.jl")
 
 plot_IRF_quad(;var =["k","\\iota","Y"],
                 solution=solve_system_quad(;params=define_env(κ=10)),
