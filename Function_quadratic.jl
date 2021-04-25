@@ -1,13 +1,13 @@
 function solve_system_quad(;params)
 
 function static_funct(p)
-    @unpack  σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ,α =   p
+    @unpack  σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ,α,γ =   p
     function ι(q::Float64)
         return((q-1.0)/κ)
     end
 
     function ℓ(C::Float64,k::Float64,q::Float64)
-        return(k*((C/k+ι(q)+κ*(ι(q))^(2.0)/2.0)/A)^(1.0/(1.0-α)))
+        return(k*((C/k+ι(q))/A)^(1.0/(1.0-α)))
     end
 
     function w(C::Float64,k::Float64,q::Float64)
@@ -79,17 +79,13 @@ end
     end
 
 
-    @unpack T,dt,init_ρ,σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,κ,δ,A,χₙ,γ,α,init_ρ = params
 
-    p  =    (σ=σ,ϵ=ϵ,θ=θ,ϕ=ϕ,ψ=ψ,ρ̄=ρ̄,θᵨ=θᵨ,θᵢ=θᵢ,κ=κ,δ=δ,A=A,χₙ=χₙ,γ=γ,α=α,init_ρ=init_ρ)
+    p  =    (σ=params.σ,ϵ=params.ϵ,θ=params.θ,
+            ϕ=params.ϕ,ψ=params.ψ,ρ̄=params.ρ̄,θᵨ=params.θᵨ,
+            θᵢ=params.θᵢ,κ=params.κ,δ=params.δ,A=params.A,
+            χₙ=params.χₙ,γ=params.γ,α=params.α,init_ρ=params.init_ρ)
 
     @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss,ℓ_ss,ι_ss= SS(p)
-
-     SS_vec = [q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss]
-
-     u0    =   [q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss]
-     tspan   =   (0.0,T)
-
     function bc1!(residual,u,p,t)
         @unpack q_ss,C_ss,k_ss,π_ss,ρ_ss,i_ss= SS(p)
         @unpack init_ρ  =   p
@@ -100,11 +96,12 @@ end
         residual[5] =   u[1][5]- init_ρ
         residual[6] =   u[1][6]- i_ss
     end
-    bvp1 = TwoPointBVProblem(NK!, bc1!, u0, tspan,(p))
+    bvp1 = TwoPointBVProblem(NK!, bc1!, [q_ss,C_ss,k_ss,π_ss,p.init_ρ,i_ss], (0.0,T),(p))
 
      u = solve(bvp1, MIRK4(), dt=dt)
     
     function result(u,p)
+    @unpack δ =p
     q=@view u[1,:][:]
     C=@view u[2,:][:]
     k=@view u[3,:][:]
@@ -135,7 +132,7 @@ end
     end
 
     @unpack sol1,SS_vec = result(u,p)
-    return (sol=sol1,SS=SS_vec,initial=u0,t=u.t)
+    return (sol=sol1,SS=SS_vec,t=u.t)
 end
 
 @unpack T,ϕ,dt   = define_env()
