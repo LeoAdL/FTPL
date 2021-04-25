@@ -170,9 +170,9 @@ end
 function compute_dev_quad(;n,θ,T,κ)
         solution=solve_system_quad(;params=define_env(θ=θ,κ=κ))
         SS  =   solution.SS[n]
-        dev =   ((solution.sol[n,:].-SS)./SS)*100
+        dev =   (((@view solution.sol[n,:]).-SS)./SS)*100
         N=T/dt+1
-        cum = sum(dev[1:floor(Int,N)])
+        cum = sum(@view dev[1:floor(Int,N)])
         return (impact=dev[1],cum=cum)
 end
 
