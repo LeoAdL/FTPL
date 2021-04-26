@@ -10,15 +10,15 @@ using DifferentialEquations
 
 
 include("params_def.jl")
-pp =define_env(T=30,N_t=50)
+pp =define_env(T=30,N_t=60)
 include("Functions.jl")
 
-@time solutionNK=solve_system(params =pp)
+solutionNK=solve_system(params =pp)
 
-plot_IRF(solution=solutionNK)
+plot_IRF(solution=solutionNK,var =["x","\\pi","i"])
 
- plot_θ_cum(;var="x",θ_range=range(.1,500,length=75),ϕ=ϕ,
-                T_range=[1,5,10,T])
+ plot_θ_cum(;var="x",θ_range=range(.1,2000,length=75),ϕ=ϕ,
+                T_range=[0,1,5,10,T])
 
 
 params =define_env()
@@ -30,7 +30,7 @@ plot_IRF_quad(;var =["k","\\iota","Y"],
 
 @time plot_θ_cum_quad(;var="Y",theta_range=range(.1,500,length=2),κ_range=[10,10000],T_range=[0])
 
- plot_θ_cum_quad(;θ_range=range(.1,500,length=2),T_range=[1,T],κ_range=[30,300])
+ plot_θ_cum_quad(;θ_range=range(.1,500,length=2),T_range=[0,T],κ_range=[30,300])
 
 
 compute_dev(;θ=10^(-5),T=10.0)
