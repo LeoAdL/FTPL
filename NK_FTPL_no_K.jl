@@ -35,7 +35,7 @@ function solve_system(;params)
 
         du[4]  =   -θᵨ*(ρ-ρ̄)
 
-        du[5]   =   v*(i-π) -S* Yₙ*(x-1.0)
+        du[5]   =   v*(i-π) -S* Yₙ*(x_ss-1.0)
 
     end
 
@@ -139,7 +139,7 @@ function plot_θ_cum(;var="x",θ_range=range(1,500,length=10),ϕ=ϕ,
             y, 
             label=lab,
             xlabel=L"\theta", 
-            ylabel=latexstring("\$\\sum_{t=0}{T}\\widehat{{$(val[n])}}_{t}\\left(\\%,\\phi=$(ϕ)\\right)\$"),
+            ylabel=latexstring("\$\\sum_{t=0}{T}\\widehat{{$(val[n])}}_{t}\\left(\\%,\\phi=$(ϕ_FTPL*ind_Taylor)\\right)\$"),
             legendfontsize=7,
             palette = palette([:blue,:red],N),
             legend=:outertopright)
