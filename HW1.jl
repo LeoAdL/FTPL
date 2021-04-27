@@ -15,6 +15,8 @@ include("Functions.jl")
 
 solutionNK=solve_system(params =pp)
 
+
+
 plot_IRF(solution=solutionNK,var =["x","\\pi","i"])
 
  plot_θ_cum(;var="x",θ_range=range(.1,2000,length=75),ϕ=ϕ,
@@ -42,5 +44,13 @@ compute_dev(;θ=100,T=50.0)
 
 compute_dev(;θ=0.001,T=50.0)
 
+include("NK_FTPL_no_K.jl")
+
+pp =define_env(T=30,N_t=60,ind_Taylor=0.0)
 
 
+solutionNK_FTPL =solve_system(params =pp)
+
+plot_IRF_FTPL(solution=solutionNK_FTPL,var =["x","i"])
+
+plot_θ_cum(θ_range=range(1,500,length=10))
