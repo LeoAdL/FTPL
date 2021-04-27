@@ -31,7 +31,7 @@ function solve_system(;params)
         
         du[2]  =   -(ϵ-1.0)/θ*(x^(1.0/σ+ψ)-1.0)+π*((1.0-σ)*(i-π)+σ*ρ)
 
-        du[3]  = -θᵢ*(i-ϕ_FTPL*π)*ind_Taylor
+        du[3]  = -θᵢ*(i-ϕ_FTPL*π*ind_Taylor+(1-ind_Taylor)*i_ss)
 
         du[4]  =   -θᵨ*(ρ-ρ̄)
 
