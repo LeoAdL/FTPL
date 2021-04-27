@@ -44,14 +44,14 @@ compute_dev(;θ=100,T=50.0)
 
 compute_dev(;θ=0.001,T=50.0)
 
-pp =define_env(T=30,N_t=60,ind_Taylor=0.0)
+pp =define_env(T=30,N_t=60,ind_Taylor=0.0,S=1.03)
 
 include("NK_FTPL_no_K.jl")
 
 
 
-@time solutionNK_FTPL =solve_system(params =pp)
+@time solutionNK_FTPL =solve_system(params=pp)
 
-plot_IRF_FTPL(solution=solutionNK_FTPL,var=["\\pi"])
+plot_IRF_FTPL(solution=solutionNK_FTPL)
 
 plot_θ_cum(θ_range=range(5,150,length=15),T_range=[0,30])

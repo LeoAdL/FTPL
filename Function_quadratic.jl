@@ -114,7 +114,7 @@ end
     i=@view u[6,:][:] 
 
     sol1  =   similar(zeros(size(u)[1]+3,size(u)[2]))
-    sol1[1:5,:]  =@view u[2:end,:]
+    sol1[1:size(u)[1]-1,:]  =@view u[2:end,:]
 
     @unpack ι,ℓ,w,ν_k,χ,Y=static_funct(p)
 
