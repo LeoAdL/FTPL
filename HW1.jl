@@ -52,6 +52,6 @@ include("NK_FTPL_no_K.jl")
 
 @time solutionNK_FTPL =solve_system(params=pp)
 
-plot_IRF_FTPL(solution=solutionNK_FTPL)
+plot_IRF_FTPL(solution=solutionNK_FTPL,var=["x","i","\\rho","v"])
 
 plot_θ_cum(θ_range=range(5,150,length=15),T_range=[0,30])

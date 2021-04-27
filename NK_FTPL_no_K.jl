@@ -43,8 +43,6 @@ function solve_system(;params)
 
         du[6]   =   vˡ *(i-π) -(s₀+S*vˡ)
 
-
-
     end
 
     
