@@ -117,7 +117,7 @@ function compute_dev_FTPL(;solution,n,T)
 end
 
 function plot_θ_cum(;var="x",θ_range=range(1,500,length=10),ϕ=ϕ,
-                T_range=[1,T],ind_Taylor=pp.ind_Taylor,ϕ_FTPL=pp.ϕ_FTPL)
+                T_range=[0,T],ind_Taylor=pp.ind_Taylor,ϕ_FTPL=pp.ϕ_FTPL)
     val =["x","\\pi","i","\\rho","v"]
     n=findfirst(isequal(var), val)
     N   = length(T_range)  

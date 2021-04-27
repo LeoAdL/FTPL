@@ -46,11 +46,11 @@ compute_dev(;θ=0.001,T=50.0)
 
 include("NK_FTPL_no_K.jl")
 
-pp =define_env(T=30,N_t=60,ind_Taylor=0.0)
+pp =define_env(T=30,N_t=60,ind_Taylor=1.0)
 
 
 solutionNK_FTPL =solve_system(params =pp)
 
-plot_IRF_FTPL(solution=solutionNK_FTPL,var =["x","i"])
+plot_IRF_FTPL(solution=solutionNK_FTPL)
 
-plot_θ_cum(θ_range=range(1,500,length=10))
+plot_θ_cum(θ_range=range(1,100,length=100),T_range=[0,5,30])
