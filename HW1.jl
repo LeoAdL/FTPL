@@ -55,3 +55,12 @@ include("NK_FTPL_no_K.jl")
 plot_IRF_FTPL(solution=solutionNK_FTPL,var=["x","i","\\rho","v","s"])
 
 plot_θ_cum(θ_range=range(.01,150,length=20),T_range=[0,30])
+
+
+include("NK_FTPL_WITH_K.jl")
+
+pp =define_env(T=30,N_t=30,ind_Taylor=1.0)
+
+@time solutionNK_FTPL_quad =solve_system_quad_FTPL(params=pp)
+
+plot_IRF_quad_FTPL(solution=solutionNK_FTPL_quad)

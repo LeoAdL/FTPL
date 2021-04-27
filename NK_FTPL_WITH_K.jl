@@ -1,33 +1,33 @@
 function solve_system_quad_FTPL(;params)
 
-function static_funct(p)
+    function static_funct(p)
     @unpack σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ, α, γ,S, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
-    function ι(q::Float64)
-        return((q-1.0)/κ)
-    end
+        function ι(q::Float64)
+            return((q-1.0)/κ)
+        end
 
-    function ℓ(C::Float64,k::Float64,q::Float64)
-        return(k*((C/k+ι(q))/A)^(1.0/(1.0-α)))
-    end
+        function ℓ(C::Float64,k::Float64,q::Float64)
+            return(k*((C/k+ι(q))/A)^(1.0/(1.0-α)))
+        end
 
-    function w(C::Float64,k::Float64,q::Float64)
-        return (ℓ(C,k,q)^(ψ)*C^(γ))
-    end
+        function w(C::Float64,k::Float64,q::Float64)
+            return (ℓ(C,k,q)^(ψ)*C^(γ))
+        end
 
 
-    function ν_k(C::Float64,k::Float64,q::Float64)
-        return((1.0/q)*(α/(1.0-α))*w(C,k,q)*(ℓ(C,k,q)/k))
-    end
-        
-    function χ(C::Float64,k::Float64,q::Float64)
-        return((w(C,k,q)/(1.0-α))^(1.0-α)*(q*ν_k(C,k,q)/α)^(α))
-    end
+        function ν_k(C::Float64,k::Float64,q::Float64)
+            return((1.0/q)*(α/(1.0-α))*w(C,k,q)*(ℓ(C,k,q)/k))
+        end
+            
+        function χ(C::Float64,k::Float64,q::Float64)
+            return((w(C,k,q)/(1.0-α))^(1.0-α)*(q*ν_k(C,k,q)/α)^(α))
+        end
 
-    function Y(C::Float64,k::Float64,q::Float64)
-        return(A*(k)^(α)*(ℓ(C,k,q))^(1-α))
+        function Y(C::Float64,k::Float64,q::Float64)
+            return(A*(k)^(α)*(ℓ(C,k,q))^(1-α))
+        end
+        return (ι=ι,ℓ=ℓ,w=w,ν_k=ν_k,χ=χ,Y=Y)
     end
-    return (ι=ι,ℓ=ℓ,w=w,ν_k=ν_k,χ=χ,Y=Y)
-end
 
 
 
@@ -73,9 +73,9 @@ end
             q_ss = 1.0
             k_ss = (ρ̄*((1-α)/α)*(k_l)^(1+ψ)*(k_c)^(γ))^(1/(ψ+γ))
             C_ss = k_ss/k_c
+            ρ_ss = ρ̄
             i_ss = ρ̄*ϕ_FTPL/(ϕ_FTPL-1.0)*ind_Taylor +(1-ind_Taylor)*i_target
             π_ss = i_ss - ρ_ss
-            ρ_ss = ρ̄
 
             v_ss = s₀/(i_ss-π_ss-S)
             s_ss = s₀ + S*v_ss
@@ -98,7 +98,9 @@ end
     return ([q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss,v_ss,v_ss])
     end
 
-    p  =    (σ=params.σ,ϵ=params.ϵ,θ=params.θ,
+    p  =    (σ=params.σ,
+            ϵ          = params.ϵ,
+            θ          = params.θ,
             ϕ          = params.ϕ,
             ψ          = params.ψ,
             ρ̄         = params.ρ̄,
@@ -112,13 +114,12 @@ end
             α          = params.α,
             init_ρ     = params.init_ρ,
             S          = params.S,
-            A          = params.A,
             i_target   = params.i_target,
             ind_Taylor = params.ind_Taylor,
             ϕ_FTPL     = params.ϕ_FTPL,
             s₀         = params.s₀)
 
-)
+
 
     function bc1!(residual,u,p,t)
             @unpack  q_ss,   C_ss, k_ss, π_ss, ρ_ss, i_ss,v_ss = SS(p)
@@ -133,52 +134,51 @@ end
             residual[8] = u[1][8]- v_ss
     end
 
-    end
 
     bvp1 = TwoPointBVProblem(NK!, bc1!, u_0(p), (0.0,params.T),(p))
 
     u = solve(bvp1, MIRK4(), dt=params.dt)
     
     function result(u,p)
-    @unpack δ,s₀, S     = p
-    @unpack q_ss, C_ss, k_ss, π_ss, i_ss, ℓ_ss, ι_ss, ρ_ss,v_ss,s_ss = SS(p)
-            q  = @view u[1,:][:]
-            C  = @view u[2,:][:]
-            k  = @view u[3,:][:]
-            π  = @view u[4,:][:]
-            i  = @view u[6,:][:]
-            v  = @view u[7,:][:]
-            vˡ = @view u[8,:][:]
+        @unpack δ,s₀, S     = p
+        @unpack q_ss, C_ss, k_ss, π_ss, i_ss, ℓ_ss, ι_ss, ρ_ss,v_ss,s_ss = SS(p)
+                q  = @view u[1,:][:]
+                C  = @view u[2,:][:]
+                k  = @view u[3,:][:]
+                π  = @view u[4,:][:]
+                i  = @view u[6,:][:]
+                v  = @view u[7,:][:]
+                vˡ = @view u[8,:][:]
 
-            n  = size(u)[1]
+                n  = size(u)[1]
 
-         sol1              = similar(zeros(n+3,size(u)[2]))
-    sol1[1:n-3,:] = @view u[2:n-2,:]
+            sol1              = similar(zeros(n+3,size(u)[2]))
+        sol1[1:n-3,:] = @view u[2:n-2,:]
 
-    @unpack ι, ℓ, w, ν_k, χ, Y = static_funct(p)
-    
-    sol1[n-2,:] = ι.(q) .+ δ
-    sol1[n-1,:] = ℓ.(C,k,q)
-    sol1[n,:]   = Y.(C,k,q)
-    sol1[n+1,:] = i.-π
-    sol1[n+2,:] = v
-    sol1[n+3,:] = s₀.+S*vˡ
-    
-    SS_vec = similar(sol1[:,1])
-    SS_vec[1]     = C_ss
-    SS_vec[2]     = k_ss
-    SS_vec[3]     = π_ss
-    SS_vec[4]     = ρ_ss
-    SS_vec[5]     = i_ss
-    SS_vec[6]     = ι_ss+ δ
-    SS_vec[7]     = ℓ_ss
-    SS_vec[8]     = Y.(C_ss,k_ss,q_ss)
-    SS_vec[9]     = i_ss-π_ss
-    SS_vec[10]    = v_ss
-    SS_vec[11]    = s_ss
+        @unpack ι, ℓ, w, ν_k, χ, Y = static_funct(p)
+        
+        sol1[n-2,:] = ι.(q) .+ δ
+        sol1[n-1,:] = ℓ.(C,k,q)
+        sol1[n,:]   = Y.(C,k,q)
+        sol1[n+1,:] = i.-π
+        sol1[n+2,:] = v
+        sol1[n+3,:] = s₀.+S*vˡ
+        
+        SS_vec = similar(sol1[:,1])
+        SS_vec[1]     = C_ss
+        SS_vec[2]     = k_ss
+        SS_vec[3]     = π_ss
+        SS_vec[4]     = ρ_ss
+        SS_vec[5]     = i_ss
+        SS_vec[6]     = ι_ss+ δ
+        SS_vec[7]     = ℓ_ss
+        SS_vec[8]     = Y.(C_ss,k_ss,q_ss)
+        SS_vec[9]     = i_ss-π_ss
+        SS_vec[10]    = v_ss
+        SS_vec[11]    = s_ss
 
 
-    return(SS_vec=SS_vec,sol1=sol1)
+        return(SS_vec=SS_vec,sol1=sol1)
     end
 
 
