@@ -66,7 +66,7 @@ function solve_system_quad_FTPL(;params)
     function SS(p)
         @unpack α, γ, σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A,S, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
 
-            k_c = (α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
+            k_c = (α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ_FTPL*ind_Taylor-1.0))
     
             k_l = (A*k_c)^(1.0/(1.0-α))
 
@@ -186,7 +186,7 @@ function solve_system_quad_FTPL(;params)
     return (sol=sol1,SS=SS_vec,t=u.t)
 end
 
-@unpack T, ϕ, dt = pp
+@unpack T, dt = pp
 
 function plot_IRF_quad_FTPL(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s"],
                         solution,T_end=T)
