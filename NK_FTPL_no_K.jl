@@ -16,7 +16,7 @@ function solve_system(;params)
 
     function NK_FTPL!(du,u,p,t)
         @unpack σ,ϵ,θ,ϕ,ψ,ρ̄,θᵨ,θᵢ,S,ϕ_FTPL,ind_Taylor =   p
-        @unpack ρ_ss,v_ss,Yₙ,x_ss = SS(p)
+        @unpack ρ_ss,v_ss,Yₙ,x_ss,i_ss = SS(p)
         x    =   u[1]
 
         π   =   u[2]
