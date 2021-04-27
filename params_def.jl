@@ -15,18 +15,17 @@ function define_env(;ρ̄      =  2.2/100,
                      κ          = 3.0,
                      δ          = .1,
                      α          = 1/3,
-                     S          = 3.0/100,
                      ϕ_FTPL     = 1-.25,
                      s₀         = -3/100,
                      ind_Taylor = 0.0,
                      A          = .133)
-                     
-          i_target = 2/100
-          init_ρ   = ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))/10
-          σ        = 1/γ
-          dt       = T/N_t
-          χₙ       = A*(ϵ-1.0)/ϵ
-       di(i,π)     = -θᵢ*(i-ϕ_FTPL*π)*ind_Taylor
+           S        = ρ̄ +2
+           i_target = 2/100
+           init_ρ   = ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))/10
+           σ        = 1/γ
+           dt       = T/N_t
+           χₙ       = A*(ϵ-1.0)/ϵ
+        di(i,π)     = -θᵢ*(i-ϕ_FTPL*π)*ind_Taylor
 
        params   = @with_kw (ρ̄      =  ρ̄,
                      θᵨ         = θᵨ,

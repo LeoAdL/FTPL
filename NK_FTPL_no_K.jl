@@ -3,7 +3,7 @@ function solve_system(;params)
     function SS(p)
         @unpack σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, A, S, γ, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
 
-        Yₙ = A^(ψ/(ψ+γ))*((ϵ-1)/ϵ)^(1/(ψ+γ))
+        Yₙ = A^(1+ψ/(ψ+γ))*((ϵ-1)/ϵ)^(1/(ψ+γ))
 
         ρ_ss = ρ̄
         i_ss = ρ̄*ϕ_FTPL/(ϕ_FTPL-1.0)*ind_Taylor +(1-ind_Taylor)*i_target
