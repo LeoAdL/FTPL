@@ -66,19 +66,18 @@ function solve_system_quad_FTPL(;params)
     function SS(p)
         @unpack α, γ, σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A,S, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
 
-            k_c = (α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ_FTPL*ind_Taylor-1.0))
-    
-            k_l = (A*k_c)^(1.0/(1.0-α))
 
             q_ss = 1.0
-            k_ss = (ρ̄*((1-α)/α)*(k_l)^(1+ψ)*(k_c)^(γ))^(1/(ψ+γ))
-            C_ss = k_ss/k_c
             ρ_ss = ρ̄
             i_ss = ρ̄*ϕ_FTPL/(ϕ_FTPL-1.0)*ind_Taylor +(1-ind_Taylor)*i_target
             π_ss = i_ss - ρ_ss
-
             v_ss = s₀/(i_ss-π_ss-S)
             s_ss = s₀ + S*v_ss
+            k_c = (α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄*π_ss)
+            k_l = (A*k_c)^(1.0/(1.0-α))
+            k_ss = (ρ̄*((1-α)/α)*(k_l)^(1+ψ)*(k_c)^(γ))^(1/(ψ+γ))
+            C_ss = k_ss/k_c
+
 
        return(π_ss=π_ss,
                 C_ss = C_ss,
@@ -131,7 +130,7 @@ function solve_system_quad_FTPL(;params)
             residual[5] = u[1][5]- init_ρ
             residual[6] = u[1][6]- i_ss
             residual[7] = u[end][7]- v_ss
-            residual[8] = u[end][8]- v_ss
+            residual[8] = u[1][8]- v_ss
     end
 
 

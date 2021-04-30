@@ -79,7 +79,7 @@ function solve_system(;params)
         residual[3]     = u[1][3]- i_ss
         residual[4]     = u[1][4]- init_ρ
         residual[5]     = u[1][5]- v_ss
-        residual[6]     = u[end][6]- v_ss
+        residual[6]     = u[1][6]- v_ss
     end
 
     function SS_vec(p)
