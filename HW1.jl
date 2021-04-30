@@ -44,7 +44,7 @@ compute_dev(;θ=100,T=50.0)
 
 compute_dev(;θ=0.001,T=50.0)
 
-pp =define_env(T=50,N_t=30,ind_Taylor=0.0,S=0.0)
+pp =define_env(T=60,N_t=100,ind_Taylor=0.0,S=1.0)
 
 include("NK_FTPL_no_K.jl")
 
@@ -59,7 +59,7 @@ plot_θ_cum(θ_range=range(.01,150,length=20),T_range=[0,30])
 
 include("NK_FTPL_WITH_K.jl")
 
-pp =define_env(T=10,N_t=30,ind_Taylor=1.0,S=1.0)
+pp =define_env(T=10,N_t=30,ind_Taylor=0.0,S=0.0)
 
 @time solutionNK_FTPL_quad =solve_system_quad_FTPL(params=pp)
 

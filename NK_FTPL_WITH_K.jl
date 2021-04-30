@@ -131,7 +131,7 @@ function solve_system_quad_FTPL(;params)
             residual[5] = u[1][5]- init_ρ
             residual[6] = u[1][6]- i_ss
             residual[7] = u[end][7]- v_ss
-            residual[8] = u[1][8]- v_ss
+            residual[8] = u[end][8]- v_ss
     end
 
 
