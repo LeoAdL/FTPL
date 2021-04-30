@@ -127,7 +127,7 @@ function solve_system_quad_FTPL(;params)
             residual[1] = u[end][1]- q_ss
             residual[2] = u[end][2]- C_ss
             residual[3] = u[1][3]- k_ss
-            residual[4] = u[end][4]- π_ss
+            residual[4] = u[1][7]- v_ss
             residual[5] = u[1][5]- init_ρ
             residual[6] = u[1][6]- i_ss
             residual[7] = u[end][7]- v_ss

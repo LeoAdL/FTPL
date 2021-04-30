@@ -75,10 +75,10 @@ function solve_system(;params)
         @unpack  ρ_ss,   π_ss, i_ss, x_ss, v_ss = SS(p)
         @unpack  init_ρ = p
         residual[1]     = u[end][1]- x_ss
-        residual[2]     = u[end][2]- π_ss
+        residual[2]     = u[end][5]- v_ss
         residual[3]     = u[1][3]- i_ss
         residual[4]     = u[1][4]- init_ρ
-        residual[5]     = u[end][5]- v_ss
+        residual[5]     = u[1][5]- v_ss
         residual[6]     = u[1][6]- v_ss
     end
 
@@ -97,7 +97,7 @@ function solve_system(;params)
 
 
                 sol             = similar(zeros(size(u)[1],size(u)[2]))
-            sol[1:size(u)[1],:] = @view u[:,:]
+            sol[1:size(u)[1]-1,:] = @view u[1:size(u)[1]-1,:]
             sol[size(u)[1],:]   = s₀.+S*vˡ
         return(sol)
     end
