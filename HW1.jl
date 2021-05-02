@@ -7,13 +7,14 @@ using Formatting
 using Printf
 using DifferentialEquations
 
-
-
 include("params_def.jl")
 pp =define_env(T=30,N_t=60)
+
+
+
 include("Functions.jl")
 
-solutionNK=solve_system(params =pp)
+@time solutionNK=solve_system(params =pp)
 
 
 
@@ -27,7 +28,7 @@ pp =define_env(T=300,N_t=150)
 
 include("Function_quadratic.jl")
 @time solution=solve_system_quad(;params=pp)
-plot_IRF_quad(;solution=solution,var=["\\iota"])
+plot_IRF_quad(;solution=solution)
 
 @time plot_θ_cum_quad(;var="Y",theta_range=range(.1,500,length=2),κ_range=[10,10000],T_range=[0])
 
@@ -55,7 +56,7 @@ plot_IRF_FTPL(solution=solutionNK_FTPL)
 
 plot_θ_cum(θ_range=range(.01,150,length=20),T_range=[0,30])
 
-pp =define_env(T=70,N_t=30,ind_Taylor=0.0,S=0.0)
+pp =define_env(T=30,N_t=30,ind_Taylor=0.0,S=0.0,γ=1.0)
 
 include("NK_FTPL_WITH_K.jl")
 

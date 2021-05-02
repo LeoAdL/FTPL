@@ -1,33 +1,33 @@
 function solve_system_quad(;params)
 
-function static_funct(p)
-    @unpack σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ, α, γ = p
-    function ι(q::Float64)
-        return((q-1.0)/κ)
-    end
+    function static_funct(p)
+        @unpack σ, ψ, A, α, γ,κ = p
+        function ι(q)
+            return((q-1.0)/κ)
+        end
 
-    function ℓ(C::Float64,k::Float64,q::Float64)
-        return(k*((C/k+ι(q))/A)^(1.0/(1.0-α)))
-    end
+        function ℓ(C,k,q)
+            return(k*((C/k+ι(q))/A)^(1.0/(1.0-α)))
+        end
 
-    function w(C::Float64,k::Float64,q::Float64)
-        return (ℓ(C,k,q)^(ψ)*C^(γ))
-    end
+        function w(C,k,q)
+            return (ℓ(C,k,q)^(ψ)*C^(γ))
+        end
 
 
-    function ν_k(C::Float64,k::Float64,q::Float64)
-        return((1.0/q)*(α/(1.0-α))*w(C,k,q)*(ℓ(C,k,q)/k))
-    end
-        
-    function χ(C::Float64,k::Float64,q::Float64)
-        return((w(C,k,q)/(1.0-α))^(1.0-α)*(q*ν_k(C,k,q)/α)^(α))
-    end
+        function ν_k(C,k,q)
+            return((1.0/q)*(α/(1.0-α))*w(C,k,q)*(ℓ(C,k,q)/k))
+        end
+            
+        function χ(C,k,q)
+            return((w(C,k,q)/(1.0-α))^(1.0-α)*(q*ν_k(C,k,q)/α)^(α))
+        end
 
-    function Y(C::Float64,k::Float64,q::Float64)
-        return(A*(k)^(α)*(ℓ(C,k,q))^(1-α))
+        function Y(C,k,q)
+            return(A*(k)^(α)*(ℓ(C,k,q))^(1-α))
+        end
+        return (ι=ι,ℓ=ℓ,w=w,ν_k=ν_k,χ=χ,Y=Y)
     end
-    return (ι=ι,ℓ=ℓ,w=w,ν_k=ν_k,χ=χ,Y=Y)
-end
 
 
 
@@ -79,9 +79,9 @@ end
     end
 
     function u_0(p)
-        @unpack q_ss,   C_ss, k_ss, π_ss, i_ss, ℓ_ss, ι_ss = SS(p)
+        @unpack q_ss,   C_ss, k_ss, π_ss, i_ss = SS(p)
         @unpack init_ρ = p
-    return ([q_ss,C_ss,k_ss,π_ss,p.init_ρ,i_ss])
+    return ([q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss])
     end
 
     p  =    (σ=params.σ,ϵ=params.ϵ,θ=params.θ,
@@ -94,8 +94,8 @@ end
             @unpack  init_ρ = p
             residual[1]     = u[end][1]- q_ss
             residual[2]     = u[end][2]- C_ss
-            residual[3]     = u[1][3]- k_ss
-            residual[4]     = u[end][4]- π_ss
+            residual[3]     = u[end][4]- π_ss
+            residual[4]     = u[1][3]- k_ss
             residual[5]     = u[1][5]- init_ρ
             residual[6]     = u[1][6]- i_ss
     end

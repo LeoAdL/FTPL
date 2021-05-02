@@ -1,29 +1,29 @@
 function solve_system_quad_FTPL(;params)
 
     function static_funct(p)
-    @unpack σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ, α, γ,S, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
-        function ι(q::Float64)
+        @unpack σ, ψ, A, α, γ,κ = p
+        function ι(q)
             return((q-1.0)/κ)
         end
 
-        function ℓ(C::Float64,k::Float64,q::Float64)
+        function ℓ(C,k,q)
             return(k*((C/k+ι(q))/A)^(1.0/(1.0-α)))
         end
 
-        function w(C::Float64,k::Float64,q::Float64)
+        function w(C,k,q)
             return (ℓ(C,k,q)^(ψ)*C^(γ))
         end
 
 
-        function ν_k(C::Float64,k::Float64,q::Float64)
+        function ν_k(C,k,q)
             return((1.0/q)*(α/(1.0-α))*w(C,k,q)*(ℓ(C,k,q)/k))
         end
             
-        function χ(C::Float64,k::Float64,q::Float64)
+        function χ(C,k,q)
             return((w(C,k,q)/(1.0-α))^(1.0-α)*(q*ν_k(C,k,q)/α)^(α))
         end
 
-        function Y(C::Float64,k::Float64,q::Float64)
+        function Y(C,k,q)
             return(A*(k)^(α)*(ℓ(C,k,q))^(1-α))
         end
         return (ι=ι,ℓ=ℓ,w=w,ν_k=ν_k,χ=χ,Y=Y)
@@ -31,8 +31,10 @@ function solve_system_quad_FTPL(;params)
 
 
 
+
+
     function NK!(du,u,p,t)
-         σ      ,ϵ, θ, ϕ, ψ,   ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ,S, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
+         σ, ϵ, θ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ, S, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
          @unpack ι, ℓ, w, ν_k, χ,  Y  = static_funct(p)
                  q  = u[1]
                  C  = u[2]
@@ -42,6 +44,7 @@ function solve_system_quad_FTPL(;params)
                  i  = u[6]
                  v  = u[7]
                  vˡ  = u[8]
+
 
 
             du[1] = q*(i-π+(ι(q)+κ*(ι(q))^(2.0)/2.0)/q-ι(q)-ν_k(C,k,q))
@@ -59,12 +62,11 @@ function solve_system_quad_FTPL(;params)
             du[7] = v*(i-π) -(s₀+S*vˡ)
 
             du[8] = vˡ *(i-π) -(s₀+S*vˡ)
-
         
     end
 
     function SS(p)
-        @unpack α, γ, σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A,S, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
+        @unpack α, γ, σ, ϵ, θ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A, S, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
 
 
             q_ss = 1.0
@@ -92,15 +94,14 @@ function solve_system_quad_FTPL(;params)
     end
 
     function u_0(p)
-        @unpack q_ss,   C_ss, k_ss, π_ss, i_ss, ℓ_ss, ι_ss,v_ss = SS(p)
+        @unpack q_ss,   C_ss, k_ss, π_ss, i_ss,v_ss = SS(p)
         @unpack init_ρ = p
-    return ([q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss,v_ss,v_ss])
+    return ([q_ss,C_ss,k_ss,π_ss,p.init_ρ,i_ss,v_ss,v_ss])
     end
 
     p  =    (σ=params.σ,
             ϵ          = params.ϵ,
             θ          = params.θ,
-            ϕ          = params.ϕ,
             ψ          = params.ψ,
             ρ̄         = params.ρ̄,
             θᵨ         = params.θᵨ,
@@ -123,17 +124,17 @@ function solve_system_quad_FTPL(;params)
     function bc1!(residual,u,p,t)
             @unpack  q_ss,   C_ss, k_ss, π_ss, ρ_ss, i_ss,v_ss = SS(p)
             @unpack  init_ρ = p
-            residual[1] = u[end][1]- q_ss
-            residual[2] = u[end][2]- C_ss
-            residual[3] = u[1][3]- k_ss
-            residual[4] = u[1][7]- v_ss
-            residual[5] = u[1][5]- init_ρ
-            residual[6] = u[1][6]- i_ss
-            residual[7] = u[end][7]- v_ss
-            residual[8] = u[1][8]- v_ss
+            residual[1]     = u[end][1]- q_ss
+            residual[2]     = u[end][2]- C_ss
+            residual[3]     = u[end][7]- v_ss
+            residual[4]     = u[1][3]- k_ss
+            residual[5]     = u[1][5]- init_ρ
+            residual[6]     = u[1][6]- i_ss
+            residual[7]     = u[1][7]- v_ss
+            residual[8]     = u[1][8]- v_ss
     end
 
-
+    
     bvp1 = TwoPointBVProblem(NK!, bc1!, u_0(p), (0.0,params.T),(p))
 
     u = solve(bvp1, MIRK4(), dt=params.dt)
@@ -147,7 +148,7 @@ function solve_system_quad_FTPL(;params)
                 π  = @view u[4,:][:]
                 i  = @view u[6,:][:]
                 v  = @view u[7,:][:]
-                vˡ = @view u[8,:][:]
+                vˡ  = @view u[8,:][:]
 
                 n  = size(u)[1]
 

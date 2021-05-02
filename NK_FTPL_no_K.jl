@@ -1,24 +1,9 @@
 function solve_system(;params)
 
-    function SS(p)
-        @unpack σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, A, S, γ, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
-
-        Yₙ = A^(1+ψ/(ψ+γ))*((ϵ-1)/ϵ)^(1/(ψ+γ))
-
-        ρ_ss = ρ̄
-        i_ss = ρ̄*ϕ_FTPL/(ϕ_FTPL-1.0)*ind_Taylor +(1-ind_Taylor)*i_target
-        π_ss = i_ss - ρ_ss
-        x_ss = (1.0+θ/(ϵ-1.0)*π_ss*(σ*ρ̄+(1-σ)*(i_ss-π_ss)))^(1.0/(1.0/σ+ψ))
-        v_ss = s₀/(i_ss-π_ss-S)
-        s_ss = s₀ + S*v_ss
-        return (ρ_ss=ρ_ss,π_ss=π_ss,i_ss=i_ss,
-                x_ss=x_ss,v_ss=v_ss,Yₙ=Yₙ,s_ss=s_ss)
-    end
-
     function NK_FTPL!(du,u,p,t)
         @unpack σ,    ϵ,    θ,  ϕ,    ψ,    ρ̄,   θᵨ, θᵢ, S, ϕ_FTPL, ind_Taylor, s₀ = p
-        @unpack ρ_ss, v_ss, Yₙ, x_ss, i_ss, π_ss = SS(p)
-                x    = u[1]
+        
+        x = u[1]
 
         π = u[2]
 
@@ -45,7 +30,22 @@ function solve_system(;params)
 
     end
 
-    
+    function SS(p)
+        @unpack σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, A, S, γ, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
+
+        Yₙ = A^(1+ψ/(ψ+γ))*((ϵ-1)/ϵ)^(1/(ψ+γ))
+
+        ρ_ss = ρ̄
+        i_ss = ρ̄*ϕ_FTPL/(ϕ_FTPL-1.0)*ind_Taylor +(1-ind_Taylor)*i_target
+        π_ss = i_ss - ρ_ss
+        x_ss = (1.0+θ/(ϵ-1.0)*π_ss*(σ*ρ̄+(1-σ)*(i_ss-π_ss)))^(1.0/(1.0/σ+ψ))
+        v_ss = s₀/(i_ss-π_ss-S)
+        s_ss = s₀ + S*v_ss
+        return (ρ_ss=ρ_ss,π_ss=π_ss,i_ss=i_ss,
+                x_ss=x_ss,v_ss=v_ss,Yₙ=Yₙ,s_ss=s_ss)
+    end
+
+
     function u_0(p)
     @unpack π_ss,   i_ss, x_ss, v_ss = SS(p)
     @unpack init_ρ = p
