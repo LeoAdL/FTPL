@@ -43,7 +43,7 @@ function solve_system_quad_FTPL(;params)
                  ρ  = u[5]
                  i  = u[6]
                  v  = u[7]
-                 vˡ  = u[8]
+                 s  = u[8]
 
 
 
@@ -59,9 +59,9 @@ function solve_system_quad_FTPL(;params)
 
             du[6] = -θᵢ*(i-ϕ_FTPL*π)*ind_Taylor
 
-            du[7] = v*(i-π) -(s₀+S*vˡ)
+            du[7] = v*(i-π) -(s₀+S*v)
 
-            du[8] = vˡ *(i-π) -(s₀+S*vˡ)
+            du[8] = S*du[7]
         
     end
 
@@ -94,9 +94,9 @@ function solve_system_quad_FTPL(;params)
     end
 
     function u_0(p)
-        @unpack q_ss,   C_ss, k_ss, π_ss, i_ss,v_ss = SS(p)
+        @unpack q_ss,   C_ss, k_ss, π_ss, i_ss,v_ss,s_ss = SS(p)
         @unpack init_ρ = p
-    return ([q_ss,C_ss,k_ss,π_ss,p.init_ρ,i_ss,v_ss,v_ss])
+    return ([q_ss,C_ss,k_ss,π_ss,p.init_ρ,i_ss,v_ss,s_ss])
     end
 
     p  =    (σ=params.σ,
@@ -122,16 +122,16 @@ function solve_system_quad_FTPL(;params)
 
 
     function bc1!(residual,u,p,t)
-            @unpack  q_ss,   C_ss, k_ss, π_ss, ρ_ss, i_ss,v_ss = SS(p)
+            @unpack  q_ss,   C_ss, k_ss, π_ss, ρ_ss, i_ss,v_ss,s_ss = SS(p)
             @unpack  init_ρ = p
             residual[1]     = u[end][1]- q_ss
             residual[2]     = u[end][2]- C_ss
             residual[3]     = u[end][7]- v_ss
-            residual[4]     = u[1][3]- k_ss
-            residual[5]     = u[1][5]- init_ρ
-            residual[6]     = u[1][6]- i_ss
-            residual[7]     = u[1][7]- v_ss
-            residual[8]     = u[1][8]- v_ss
+            residual[4]     = u[end][8]- s_ss
+            residual[5]     = u[1][3]- k_ss
+            residual[6]     = u[1][5]- init_ρ
+            residual[7]     = u[1][6]- i_ss
+            residual[8]     = u[1][7]- v_ss
     end
 
     
@@ -148,7 +148,7 @@ function solve_system_quad_FTPL(;params)
                 π  = @view u[4,:][:]
                 i  = @view u[6,:][:]
                 v  = @view u[7,:][:]
-                vˡ  = @view u[8,:][:]
+                s = @view u[8,:][:]
 
                 n  = size(u)[1]
 
@@ -162,7 +162,7 @@ function solve_system_quad_FTPL(;params)
         sol1[n,:]   = Y.(C,k,q)
         sol1[n+1,:] = i.-π
         sol1[n+2,:] = v
-        sol1[n+3,:] = s₀.+S*vˡ
+        sol1[n+3,:] = s
         
         SS_vec = similar(sol1[:,1])
         SS_vec[1]     = C_ss

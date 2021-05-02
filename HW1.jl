@@ -24,7 +24,7 @@ plot_IRF(solution=solutionNK,var =["x","\\pi","i"])
                 T_range=[0,1,5,10,T])
 
 
-pp =define_env(T=300,N_t=150)
+pp =define_env(T=150,N_t=30)
 
 include("Function_quadratic.jl")
 @time solution=solve_system_quad(;params=pp)
@@ -56,7 +56,7 @@ plot_IRF_FTPL(solution=solutionNK_FTPL)
 
 plot_θ_cum(θ_range=range(.01,150,length=20),T_range=[0,30])
 
-pp =define_env(T=30,N_t=30,ind_Taylor=0.0,S=0.0,γ=1.0)
+pp =define_env(T=500,N_t=500,ind_Taylor=0.0,S=0.0,γ=1.0)
 
 include("NK_FTPL_WITH_K.jl")
 

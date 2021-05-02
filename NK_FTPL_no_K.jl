@@ -13,7 +13,7 @@ function solve_system(;params)
 
         v = u[5]
 
-        vˡ = u[6]
+        s = u[6]
 
 
         du[1] = σ*(i-π-ρ)*x
@@ -24,10 +24,9 @@ function solve_system(;params)
 
         du[4] = -θᵨ*(ρ-ρ̄)
 
-        du[5] = v*(i-π) -(s₀+S*vˡ)
+        du[5] = v*(i-π) -(s₀+S*v)
 
-        du[6] = vˡ *(i-π) -(s₀+S*vˡ)
-
+        du[6] = S*du[5]
     end
 
     function SS(p)
@@ -47,9 +46,9 @@ function solve_system(;params)
 
 
     function u_0(p)
-    @unpack π_ss,   i_ss, x_ss, v_ss = SS(p)
+    @unpack π_ss,   i_ss, x_ss, v_ss,s_ss = SS(p)
     @unpack init_ρ = p
-    return ([x_ss,π_ss,i_ss,init_ρ,v_ss,v_ss])
+    return ([x_ss,π_ss,i_ss,init_ρ,v_ss,s_ss])
     end
 
 
@@ -72,14 +71,14 @@ function solve_system(;params)
 
 
     function bc1!(residual,u,p,t)
-        @unpack  ρ_ss,   π_ss, i_ss, x_ss, v_ss = SS(p)
+        @unpack  ρ_ss,   π_ss, i_ss, x_ss, v_ss,s_ss = SS(p)
         @unpack  init_ρ = p
         residual[1]     = u[end][1]- x_ss
         residual[2]     = u[end][5]- v_ss
-        residual[3]     = u[1][3]- i_ss
-        residual[4]     = u[1][4]- init_ρ
-        residual[5]     = u[1][5]- v_ss
-        residual[6]     = u[1][6]- v_ss
+        residual[3]     = u[end][6]- s_ss
+        residual[4]     = u[1][3]- i_ss
+        residual[5]     = u[1][4]- init_ρ
+        residual[6]     = u[1][5]- v_ss
     end
 
     function SS_vec(p)
@@ -101,7 +100,7 @@ function solve_system(;params)
             sol[size(u)[1],:]   = s₀.+S*vˡ
         return(sol)
     end
-    return (sol=sol(u,p),SS=SS_vec(p),t=u.t)
+    return (sol=u,SS=SS_vec(p),t=u.t)
 end
 
 @unpack T, ϕ, dt = pp
