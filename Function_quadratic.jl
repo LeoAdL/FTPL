@@ -167,7 +167,8 @@ function plot_IRF_quad(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r
         xlabel         = L"t",
         legendfontsize = 8,
         ylabel         = L"\%",
-        legend         = :outertopright)
+        legend         = :outertopright,
+        palette=:tab20)
     display(p)
     return(p)
 end

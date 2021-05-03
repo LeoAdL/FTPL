@@ -90,7 +90,8 @@ function plot_IRF(;var =["x","\\pi","i","\\rho"],
         xlabel         = L"t",
         legendfontsize = 8,
         ylabel         = L"\%",
-        legend         = :outertopright)
+        legend         = :outertopright,
+        palette=:tab20)
     display(p)
     return(p)
 end

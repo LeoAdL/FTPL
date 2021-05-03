@@ -227,7 +227,8 @@ function plot_IRF_quad_FTPL(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","
         xlabel         = L"t",
         legendfontsize = 8,
         ylabel         = L"\%",
-        legend         = :outertopright)
+        legend         = :outertopright,
+        palette        = :tab20)
     display(p)
     return(p)
 end

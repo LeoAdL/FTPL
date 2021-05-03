@@ -137,7 +137,8 @@ function plot_IRF_FTPL(;var =["x","\\pi","i","\\rho","v","s","y"],
         xlabel         = L"t",
         legendfontsize = 8,
         ylabel         = L"\%",
-        legend         = :outertopright)
+        legend         = :outertopright,
+        palette        = :tab20)
     display(p)
     return(p)
 end
