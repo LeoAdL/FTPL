@@ -105,7 +105,7 @@ function compute_dev_quad(;solution,n,T)
         return (cum)
 end
 
-function plot_θ_cum(;var="x",θ_range=range(.1,500,length=10),ϕ=ϕ,
+function plot_θ_cum(;var="x",θ_range=range(.1,500,length=20),ϕ=ϕ,
                 T_range=[0,T],T=pp.T,dt=pp.dt)
     val = ["x","\\pi","i","\\rho"]
     n   = findfirst(isequal(var), val)

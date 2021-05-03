@@ -152,7 +152,7 @@ function compute_dev_FTPL(;solution,n,T)
         return (cum)
 end
 
-function plot_θ_cum(;var="x",θ_range=range(1,500,length=5),ϕ=ϕ,
+function plot_θ_cum_FTPL(;var="x",θ_range=range(1,500,length=20),ϕ=ϕ,
                 T_range=[0,T],ind_Taylor=pp.ind_Taylor,ϕ_FTPL=pp.ϕ_FTPL,
                 long_term=pp.long_term,T=pp.T,dt=pp.dt)
     val = ["x","\\pi","i","\\rho","v","s","y"]
@@ -180,7 +180,7 @@ function plot_θ_cum(;var="x",θ_range=range(1,500,length=5),ϕ=ϕ,
             legendfontsize = 7,
             palette        = palette([:blue,:red],N),
             legend         = :outertopright)
-    savefig(p,"theta_cum_$(val[n])_$(T_range[1])_FTPL.svg")
+    savefig(p,"theta_cum_$(ϕ)_FTPL.svg")
     display(p)
 end
 
