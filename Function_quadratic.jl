@@ -32,7 +32,7 @@ function solve_system_quad(;params)
 
 
     function NK!(du,u,p,t)
-         σ      ,ϵ, θ, ϕ, ψ,   ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ = p
+         @unpack σ,ϵ, θ, ϕ, ψ,   ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ = p
          @unpack ι, ℓ, w, ν_k, χ,  Y  = static_funct(p)
                  q = u[1]
                  C = u[2]

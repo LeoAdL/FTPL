@@ -44,7 +44,7 @@ compute_dev(;θ=100,T=50.0)
 
 compute_dev(;θ=0.001,T=50.0)
 
-pp =define_env(T=40,N_t=70,ind_Taylor=0.0,S=0.0)
+pp =define_env(T=40,N_t=70,ind_Taylor=1.0,S=0.0,long_term=1.0)
 
 include("NK_FTPL_no_K.jl")
 
@@ -56,7 +56,7 @@ plot_IRF_FTPL(solution=solutionNK_FTPL)
 
 plot_θ_cum(θ_range=range(.01,150,length=20),T_range=[0,30])
 
-pp =define_env(T=500,N_t=500,ind_Taylor=0.0,S=0.0,γ=1.0)
+pp =define_env(T=150,N_t=200,ind_Taylor=0.0,S=1.0,γ=1.0)
 
 include("NK_FTPL_WITH_K.jl")
 

@@ -19,14 +19,15 @@ function define_env(;ρ̄      =  2.2/100,
                      s₀         = -3/100,
                      ind_Taylor = 0.0,
                      A          = .133,
-                     S=1.0)
-           #S        = 2*ρ̄ +1
-           i_target = 2.0/100 + ρ̄
-           init_ρ   = ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))/10
-           σ        = 1.0/γ
-           dt       = T/N_t
-           χₙ       = A*(ϵ-1.0)/ϵ
-        di(i,π)     = -θᵢ*(i-ϕ_FTPL*π)*ind_Taylor
+                     S          = 1.0,
+                     long_term  = 0.0)
+              #S       = 2*ρ̄ +1
+              i_target = 2.0/100 + ρ̄
+              init_ρ   = ρ̄+sqrt(σᵨ^2/(2*θᵨ^2))/10
+              σ        = 1.0/γ
+              dt       = T/N_t
+              χₙ       = A*(ϵ-1.0)/ϵ
+           di(i,π)     = -θᵢ*(i-ϕ_FTPL*π)*ind_Taylor
 
        params   = @with_kw (ρ̄      =  ρ̄,
                      θᵨ         = θᵨ,
@@ -50,7 +51,8 @@ function define_env(;ρ̄      =  2.2/100,
                      init_ρ     = init_ρ,
                      ind_Taylor = ind_Taylor,
                      di         = di,
-                     ϕ_FTPL     = ϕ_FTPL)
+                     ϕ_FTPL     = ϕ_FTPL,
+                     long_term  = long_term)
     return params
 end
 

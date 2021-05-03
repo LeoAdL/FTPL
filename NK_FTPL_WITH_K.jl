@@ -34,7 +34,7 @@ function solve_system_quad_FTPL(;params)
 
 
     function NK!(du,u,p,t)
-         σ, ϵ, θ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ, S, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
+        @unpack σ, ϵ, θ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ, S, ind_Taylor, i_target, ϕ_FTPL = p
          @unpack ι, ℓ, w, ν_k, χ,  Y  = static_funct(p)
                  q  = u[1]
                  C  = u[2]
@@ -59,7 +59,7 @@ function solve_system_quad_FTPL(;params)
 
             du[6] = -θᵢ*(i-ϕ_FTPL*π)*ind_Taylor
 
-            du[7] = v*(i-π) -(s₀+S*v)
+            du[7] = v*(i-π) -s
 
             du[8] = S*du[7]
         
@@ -67,18 +67,21 @@ function solve_system_quad_FTPL(;params)
 
     function SS(p)
         @unpack α, γ, σ, ϵ, θ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A, S, ind_Taylor, i_target, ϕ_FTPL, s₀ = p
-
+        @unpack Y  = static_funct(p)
 
             q_ss = 1.0
             ρ_ss = ρ̄
             i_ss = ρ̄*ϕ_FTPL/(ϕ_FTPL-1.0)*ind_Taylor +(1-ind_Taylor)*i_target
             π_ss = i_ss - ρ_ss
-            v_ss = s₀/(i_ss-π_ss-S)
-            s_ss = s₀ + S*v_ss
-            k_c = (α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄*π_ss)
-            k_l = (A*k_c)^(1.0/(1.0-α))
+            k_c  = (α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄*π_ss)
+            k_l  = (A*k_c)^(1.0/(1.0-α))
             k_ss = (ρ̄*((1-α)/α)*(k_l)^(1+ψ)*(k_c)^(γ))^(1/(ψ+γ))
             C_ss = k_ss/k_c
+
+            Y_ss = Y(C_ss,k_ss,q_ss)
+            v_ss = s₀*Y_ss/(i_ss-π_ss-S)
+            s_ss = s₀*Y_ss + S*v_ss
+
 
 
        return(π_ss=π_ss,
@@ -96,7 +99,7 @@ function solve_system_quad_FTPL(;params)
     function u_0(p)
         @unpack q_ss,   C_ss, k_ss, π_ss, i_ss,v_ss,s_ss = SS(p)
         @unpack init_ρ = p
-    return ([q_ss,C_ss,k_ss,π_ss,p.init_ρ,i_ss,v_ss,s_ss])
+    return ([q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss,v_ss,s_ss])
     end
 
     p  =    (σ=params.σ,
@@ -140,7 +143,7 @@ function solve_system_quad_FTPL(;params)
     u = solve(bvp1, MIRK4(), dt=params.dt)
     
     function result(u,p)
-        @unpack δ,s₀, S     = p
+        @unpack δ    = p
         @unpack q_ss, C_ss, k_ss, π_ss, i_ss, ℓ_ss, ι_ss, ρ_ss,v_ss,s_ss = SS(p)
                 q  = @view u[1,:][:]
                 C  = @view u[2,:][:]
@@ -148,7 +151,7 @@ function solve_system_quad_FTPL(;params)
                 π  = @view u[4,:][:]
                 i  = @view u[6,:][:]
                 v  = @view u[7,:][:]
-                s = @view u[8,:][:]
+                s  = @view u[8,:][:]
 
                 n  = size(u)[1]
 
