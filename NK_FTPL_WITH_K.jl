@@ -243,8 +243,9 @@ function compute_dev_quad_FTPL(;solution,n,T)
 end
 
 
-function plot_θ_cum_quad_FTPL(;var="Y",θ_range=range(.1,500,length=10),
-                T_range=[T],κ_range=[3,30,300],ind_Taylor=pp.ind_Taylor,ϕ_FTPL=pp.ϕ_FTPL)
+function plot_θ_cum_quad_FTPL(;var="Y",θ_range=range(.1,500,length=5),
+                T_range=[0,T],κ_range=[3,30,300],ind_Taylor=pp.ind_Taylor,ϕ_FTPL=pp.ϕ_FTPL,params=pp,long_term=pp.long_term)
+    @unpack T, dt = pp
     val = ["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"]
     n   = findfirst(isequal(var), val)
     N   = length(T_range)*length(κ_range)
@@ -257,7 +258,7 @@ function plot_θ_cum_quad_FTPL(;var="Y",θ_range=range(.1,500,length=10),
         j = j+1
         k = 0
         for κ in κ_range
-        solution = solve_system_quad_FTPL(;params=define_env(θ=θ,κ=κ,T=T,N_t=T/dt,ϕ_FTPL=ϕ_FTPL,ind_Taylor=ind_Taylor))
+        solution = solve_system_quad_FTPL(;params=define_env(θ=θ,κ=κ,T=T,N_t=T/dt,ϕ_FTPL=ϕ_FTPL,ind_Taylor=ind_Taylor,long_term=long_term))
             for T in T_range
               k    = k+1
             y[j,k] = compute_dev_quad_FTPL(;solution=solution,n=n,T=T)
@@ -278,7 +279,7 @@ function plot_θ_cum_quad_FTPL(;var="Y",θ_range=range(.1,500,length=10),
             palette        = palette([:blue,:red],N),
             linestyle      = lines,
             legend         = :outertopright)
-    savefig(p,"theta_cum_$(val[n])_$(T_range[1])_quad.svg")
+    savefig(p,"theta_cum_$(ϕ_FTPL)_quad_FTPL_K.svg")
     display(p)
 end
 

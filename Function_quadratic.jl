@@ -183,8 +183,8 @@ function compute_dev_quad(;solution,n,T)
 end
 
 
-function plot_θ_cum_quad(;var="Y",θ_range=range(.1,500,length=10),ϕ=ϕ,
-                T_range=[T],κ_range=[3,30,300])
+function plot_θ_cum_quad(;var="Y",θ_range=range(.1,500,length=5),ϕ=ϕ,
+                T_range=[0,T],κ_range=[3,30,300],T=pp.T,dt=pp.dt)
     val = ["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r"]
     n   = findfirst(isequal(var), val)
     N   = length(T_range)*length(κ_range)
@@ -200,7 +200,7 @@ function plot_θ_cum_quad(;var="Y",θ_range=range(.1,500,length=10),ϕ=ϕ,
         solution = solve_system_quad(;params=define_env(θ=θ,κ=κ,T=T,N_t=T/dt,ϕ=ϕ))
             for T in T_range
               k    = k+1
-            y[j,k] = compute_dev_quad(;solution=solution,n=n,T=T)
+                y[j,k] = compute_dev_quad(;solution=solution,n=n,T=T)
             end
         end
     end

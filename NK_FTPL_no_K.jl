@@ -152,8 +152,9 @@ function compute_dev_FTPL(;solution,n,T)
         return (cum)
 end
 
-function plot_θ_cum(;var="x",θ_range=range(1,500,length=10),ϕ=ϕ,
-                T_range=[0,T],ind_Taylor=pp.ind_Taylor,ϕ_FTPL=pp.ϕ_FTPL)
+function plot_θ_cum(;var="x",θ_range=range(1,500,length=5),ϕ=ϕ,
+                T_range=[0,T],ind_Taylor=pp.ind_Taylor,ϕ_FTPL=pp.ϕ_FTPL,
+                long_term=pp.long_term,T=pp.T,dt=pp.dt)
     val = ["x","\\pi","i","\\rho","v","s","y"]
     n   = findfirst(isequal(var), val)
     N   = length(T_range)
@@ -165,7 +166,7 @@ function plot_θ_cum(;var="x",θ_range=range(1,500,length=10),ϕ=ϕ,
     for θ in θ_range
         j        = j+1
         k        = 0
-        solution = solve_system(;params=define_env(θ=θ,T=T,N_t=T/dt,ϕ_FTPL=ϕ_FTPL,ind_Taylor=ind_Taylor))
+        solution = solve_system(;params=define_env(θ=θ,T=T,N_t=T/dt,ϕ_FTPL=ϕ_FTPL,ind_Taylor=ind_Taylor,long_term=long_term))
             for T in T_range
               k    = k+1
             y[j,k] = compute_dev_FTPL(;solution=solution,n=n,T=T)
