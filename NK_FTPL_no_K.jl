@@ -1,7 +1,7 @@
 function solve_system(;params)
 
     function NK_FTPL!(du,u,p,t)
-        @unpack σ,    ϵ,    θ,  ϕ,    ψ,    ρ̄,   θᵨ, θᵢ, S, ϕ_FTPL, ind_Taylor,long_term = p
+        @unpack σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, S, ϕ_FTPL, ind_Taylor, long_term = p
         
         x = u[1]
 
@@ -27,7 +27,7 @@ function solve_system(;params)
 
         du[4] = -θᵨ*(ρ-ρ̄)
 
-        du[5] = v*(y*(1+du[7])-π) -s
+        du[5] = v*(i-π) -s 
 
         du[6] = S*du[5]
 
@@ -86,7 +86,7 @@ function solve_system(;params)
         residual[3]     = u[end][6]- s_ss
         residual[4]     = u[1][3]- i_ss
         residual[5]     = u[1][4]- init_ρ
-        residual[6]     = u[1][5]- v_ss
+        residual[6]     = u[1][5]- v_ss*(1+(u[1][7]-Q_ss)/Q_ss)
         residual[7]     = u[end][7]- Q_ss
     end
 

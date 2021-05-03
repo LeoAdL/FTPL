@@ -34,7 +34,7 @@ function solve_system_quad_FTPL(;params)
 
 
     function NK!(du,u,p,t)
-        @unpack σ, ϵ, θ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ, S, ind_Taylor, i_target, ϕ_FTPL = p
+        @unpack σ, ϵ, θ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A, χₙ, S, ind_Taylor, i_target, ϕ_FTPL,long_term = p
          @unpack ι, ℓ, w, ν_k, χ,  Y  = static_funct(p)
                  q  = u[1]
                  C  = u[2]
@@ -44,6 +44,9 @@ function solve_system_quad_FTPL(;params)
                  i  = u[6]
                  v  = u[7]
                  s  = u[8]
+                 Q  = u[9]
+
+                 y=1.0/Q
 
 
 
@@ -59,9 +62,11 @@ function solve_system_quad_FTPL(;params)
 
             du[6] = -θᵢ*(i-ϕ_FTPL*π)*ind_Taylor
 
-            du[7] = v*(i-π) -s
+            du[7] = v*(i-π) -s 
 
             du[8] = S*du[7]
+
+            du[9] = Q*(i-y)*long_term
         
     end
 
@@ -73,6 +78,7 @@ function solve_system_quad_FTPL(;params)
             ρ_ss = ρ̄
             i_ss = ρ̄*ϕ_FTPL/(ϕ_FTPL-1.0)*ind_Taylor +(1-ind_Taylor)*i_target
             π_ss = i_ss - ρ_ss
+            Q_ss = 1/i_ss
             k_c  = (α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄*π_ss)
             k_l  = (A*k_c)^(1.0/(1.0-α))
             k_ss = (ρ̄*((1-α)/α)*(k_l)^(1+ψ)*(k_c)^(γ))^(1/(ψ+γ))
@@ -93,13 +99,14 @@ function solve_system_quad_FTPL(;params)
                 ℓ_ss = k_ss/k_l,
                 ι_ss = 0.0,
                 v_ss = v_ss,
-                s_ss = s_ss)
+                s_ss = s_ss,
+                Q_ss = Q_ss)
     end
 
     function u_0(p)
-        @unpack q_ss,   C_ss, k_ss, π_ss, i_ss,v_ss,s_ss = SS(p)
+        @unpack q_ss,   C_ss, k_ss, π_ss, i_ss,v_ss,s_ss,Q_ss = SS(p)
         @unpack init_ρ = p
-    return ([q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss,v_ss,s_ss])
+    return ([q_ss,C_ss,k_ss,π_ss,init_ρ,i_ss,v_ss,s_ss,Q_ss])
     end
 
     p  =    (σ=params.σ,
@@ -120,13 +127,14 @@ function solve_system_quad_FTPL(;params)
             i_target   = params.i_target,
             ind_Taylor = params.ind_Taylor,
             ϕ_FTPL     = params.ϕ_FTPL,
-            s₀         = params.s₀)
+            s₀         = params.s₀,
+            long_term  = params.long_term)
 
 
 
     function bc1!(residual,u,p,t)
-            @unpack  q_ss,   C_ss, k_ss, π_ss, ρ_ss, i_ss,v_ss,s_ss = SS(p)
-            @unpack  init_ρ = p
+            @unpack  q_ss,   C_ss, k_ss, π_ss, ρ_ss, i_ss,v_ss,s_ss,Q_ss = SS(p)
+            @unpack  init_ρ,long_term = p
             residual[1]     = u[end][1]- q_ss
             residual[2]     = u[end][2]- C_ss
             residual[3]     = u[end][7]- v_ss
@@ -134,7 +142,8 @@ function solve_system_quad_FTPL(;params)
             residual[5]     = u[1][3]- k_ss
             residual[6]     = u[1][5]- init_ρ
             residual[7]     = u[1][6]- i_ss
-            residual[8]     = u[1][7]- v_ss
+            residual[8]     = u[1][7]- v_ss*(1+(u[1][9]-Q_ss)/Q_ss)
+            residual[9]     = u[end][9]- Q_ss
     end
 
     
@@ -144,7 +153,7 @@ function solve_system_quad_FTPL(;params)
     
     function result(u,p)
         @unpack δ    = p
-        @unpack q_ss, C_ss, k_ss, π_ss, i_ss, ℓ_ss, ι_ss, ρ_ss,v_ss,s_ss = SS(p)
+        @unpack q_ss, C_ss, k_ss, π_ss, i_ss, ℓ_ss, ι_ss, ρ_ss,v_ss,s_ss,Q_ss = SS(p)
                 q  = @view u[1,:][:]
                 C  = @view u[2,:][:]
                 k  = @view u[3,:][:]
@@ -152,6 +161,7 @@ function solve_system_quad_FTPL(;params)
                 i  = @view u[6,:][:]
                 v  = @view u[7,:][:]
                 s  = @view u[8,:][:]
+                Q  = @view u[9,:][:]
 
                 n  = size(u)[1]
 
@@ -160,12 +170,13 @@ function solve_system_quad_FTPL(;params)
 
         @unpack ι, ℓ, w, ν_k, χ, Y = static_funct(p)
         
-        sol1[n-2,:] = ι.(q) .+ δ
-        sol1[n-1,:] = ℓ.(C,k,q)
-        sol1[n,:]   = Y.(C,k,q)
-        sol1[n+1,:] = i.-π
-        sol1[n+2,:] = v
-        sol1[n+3,:] = s
+        sol1[n-3,:] = ι.(q) .+ δ
+        sol1[n-2,:] = ℓ.(C,k,q)
+        sol1[n-1,:]   = Y.(C,k,q)
+        sol1[n,:] = i.-π
+        sol1[n+1,:] = v
+        sol1[n+2,:] = s
+        sol1[n+3,:] = 1.0./Q
         
         SS_vec = similar(sol1[:,1])
         SS_vec[1]     = C_ss
@@ -179,6 +190,7 @@ function solve_system_quad_FTPL(;params)
         SS_vec[9]     = i_ss-π_ss
         SS_vec[10]    = v_ss
         SS_vec[11]    = s_ss
+        SS_vec[12]    = 1.0/Q_ss
 
 
         return(SS_vec=SS_vec,sol1=sol1)
@@ -191,10 +203,10 @@ end
 
 @unpack T, dt = pp
 
-function plot_IRF_quad_FTPL(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s"],
+function plot_IRF_quad_FTPL(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"],
                         solution,T_end=T)
     N_end = T_end/dt+1
-    val   = ["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s"]
+    val   = ["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"]
     pos   = (zeros(length(var)))
     for k in 1: length(var)
         pos[k] = findfirst(isequal(var[k]),val)
@@ -232,7 +244,7 @@ end
 
 function plot_θ_cum_quad_FTPL(;var="Y",θ_range=range(.1,500,length=10),
                 T_range=[T],κ_range=[3,30,300],ind_Taylor=pp.ind_Taylor,ϕ_FTPL=pp.ϕ_FTPL)
-    val = ["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s"]
+    val = ["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"]
     n   = findfirst(isequal(var), val)
     N   = length(T_range)*length(κ_range)
     lab = [latexstring("\$T={$(T)},\\kappa={$(κ)}\$") for (T,κ) in Iterators.product(T_range, κ_range)][:]
