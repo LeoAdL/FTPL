@@ -60,7 +60,7 @@ function solve_system_quad_FTPL(;params)
             
             du[5] = -θᵨ*(ρ-ρ̄)
 
-            du[6] = -θᵢ*(i-ϕ_FTPL*π)*ind_Taylor
+            du[6] = -θᵢ*(i-ϕ_FTPL*π-ρ̄)*ind_Taylor
 
             du[7] = v*(i-π) -s 
 
@@ -76,7 +76,7 @@ function solve_system_quad_FTPL(;params)
 
             q_ss = 1.0
             ρ_ss = ρ̄
-            i_ss = ρ̄*ϕ_FTPL/(ϕ_FTPL-1.0)*ind_Taylor +(1-ind_Taylor)*i_target
+            i_ss = ρ̄*ind_Taylor +(1-ind_Taylor)*i_target
             π_ss = i_ss - ρ_ss
             Q_ss = 1/i_ss
             k_c  = (α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄*π_ss)
@@ -169,11 +169,11 @@ function solve_system_quad_FTPL(;params)
         sol1[1:n-3,:] = @view u[2:n-2,:]
 
         @unpack ι, ℓ, w, ν_k, χ, Y = static_funct(p)
-        
+        sol1[3,:]   = sol1[3,:].+1
         sol1[n-3,:] = ι.(q) .+ δ
         sol1[n-2,:] = ℓ.(C,k,q)
-        sol1[n-1,:]   = Y.(C,k,q)
-        sol1[n,:] = i.-π
+        sol1[n-1,:] = Y.(C,k,q)
+        sol1[n,:]   = i.-π
         sol1[n+1,:] = v
         sol1[n+2,:] = s
         sol1[n+3,:] = 1.0./Q
@@ -181,7 +181,7 @@ function solve_system_quad_FTPL(;params)
         SS_vec = similar(sol1[:,1])
         SS_vec[1]     = C_ss
         SS_vec[2]     = k_ss
-        SS_vec[3]     = π_ss
+        SS_vec[3]     = π_ss +1.0
         SS_vec[4]     = ρ_ss
         SS_vec[5]     = i_ss
         SS_vec[6]     = ι_ss+ δ

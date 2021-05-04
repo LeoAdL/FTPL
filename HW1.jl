@@ -23,7 +23,7 @@ plot_IRF(solution=solutionNK,var =["x","\\pi","i"])
 plot_θ_cum()
 
 
-pp =define_env(T=200,N_t=200)
+pp =define_env(T=200,N_t=30)
 
 include("Function_quadratic.jl")
 @time solution=solve_system_quad(;params=pp)
@@ -43,7 +43,7 @@ compute_dev(;θ=100,T=50.0)
 
 compute_dev(;θ=0.001,T=50.0)
 
-pp =define_env(T=40,N_t=80,ind_Taylor=1.0,S=0.0,long_term=0.0)
+pp =define_env(T=40,N_t=80,ind_Taylor=1.0,S=1.0,long_term=1.0)
 
 include("NK_FTPL_no_K.jl")
 

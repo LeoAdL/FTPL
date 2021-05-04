@@ -51,23 +51,24 @@ function solve_system_quad(;params)
             
             du[5] = -θᵨ*(ρ-ρ̄)
 
-            du[6] = -θᵢ*(i-ϕ*π)
+            du[6] = -θᵢ*(i-ϕ*π-ρ̄)
         
     end
 
     function SS(p)
         @unpack α, γ, σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ, κ, δ, A = p
 
-            k_c = (α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄^(2)/(ϕ-1.0))
+            π_ss = 0.0
+            ρ_ss = ρ̄
+            i_ss = ρ̄
+
+            k_c = (α/(ρ̄))*((ϵ-1.0)/ϵ)*(1.0+θ/(ϵ-1.0)*ρ̄*π_ss)
     
             k_l = (A*k_c)^(1.0/(1.0-α))
 
             q_ss = 1.0
             k_ss = (ρ̄*((1-α)/α)*(k_l)^(1+ψ)*(k_c)^(γ))^(1/(ψ+γ))
             C_ss = k_ss/k_c
-            π_ss = ρ̄/(ϕ-1.0)
-            ρ_ss = ρ̄
-            i_ss = ϕ*π_ss
        return(π_ss=π_ss,
                 C_ss = C_ss,
                 q_ss = q_ss,
@@ -117,7 +118,7 @@ function solve_system_quad(;params)
     sol1[1:size(u)[1]-1,:] = @view u[2:end,:]
 
     @unpack ι, ℓ, w, ν_k, χ, Y = static_funct(p)
-
+    sol1[3,:] = sol1[3,:].+1.0
     sol1[6,:] = ι.(q) .+ δ
     sol1[7,:] = ℓ.(C,k,q)
     sol1[8,:] = Y.(C,k,q)
@@ -126,7 +127,7 @@ function solve_system_quad(;params)
            SS_vec = similar(sol1[:,1])
     SS_vec[1]     = C_ss
     SS_vec[2]     = k_ss
-    SS_vec[3]     = π_ss
+    SS_vec[3]     = π_ss+1.0
     SS_vec[4]     = ρ_ss
     SS_vec[5]     = i_ss
     SS_vec[6]     = ι_ss+ δ

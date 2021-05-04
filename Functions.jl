@@ -14,7 +14,7 @@ function solve_system(;params)
         
         du[2] = -(ϵ-1.0)/θ*(x^(1.0/σ+ψ)-1.0)+π*((1.0-σ)*(i-π)+σ*ρ)
 
-        du[3] = -θᵢ*(i-ϕ*π)
+        du[3] = -θᵢ*(i-ϕ*π-ρ̄)
 
         du[4] = -θᵨ*(ρ-ρ̄)
         
@@ -24,8 +24,8 @@ function solve_system(;params)
         @unpack σ, ϵ, θ, ϕ, ψ, ρ̄, θᵨ, θᵢ = p
 
         ρ_ss = ρ̄
-        π_ss = ρ̄/(ϕ-1.0)
-        i_ss = ρ̄*ϕ/(ϕ-1.0)
+        π_ss = 0.0
+        i_ss = ρ̄
         x_ss = (1.0+θ/(ϵ-1.0)*π_ss*(σ*ρ̄+(1-σ)*(i_ss-π_ss)))^(1.0/(1.0/σ+ψ))
 
         return (ρ_ss=ρ_ss,π_ss=π_ss,i_ss=i_ss,x_ss=x_ss)
@@ -61,7 +61,10 @@ function solve_system(;params)
     @unpack T,    dt, init_ρ = params
             bvp1 = TwoPointBVProblem(NK_Rote!, bc1!,u_0(p), (0.0,T),(p))
             sol1 = solve(bvp1, MIRK4(), dt=dt)
-    return (sol=sol1,SS=SS_vec(p),t=sol1.t)
+            sol1[2,:]=sol1[2,:].+1.0
+            SS= SS_vec(p)
+            SS[2]=SS[2].+1.0
+    return (sol=sol1,SS=SS,t=sol1.t)
 end
 
 @unpack T, ϕ, dt = pp

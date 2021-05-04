@@ -23,7 +23,7 @@ function solve_system(;params)
         
         du[2] = -(ϵ-1.0)/θ*(x^(1.0/σ+ψ)-1.0)+π*((1.0-σ)*(i-π)+σ*ρ)
 
-        du[3] = -θᵢ*(i-ϕ_FTPL*π)*ind_Taylor
+        du[3] = -θᵢ*(i-ϕ_FTPL*π-ρ̄)*ind_Taylor
 
         du[4] = -θᵨ*(ρ-ρ̄)
 
@@ -40,7 +40,7 @@ function solve_system(;params)
         Yₙ = A^(1+ψ/(ψ+γ))*((ϵ-1)/ϵ)^(1/(ψ+γ))
 
         ρ_ss = ρ̄
-        i_ss = ρ̄*ϕ_FTPL/(ϕ_FTPL-1.0)*ind_Taylor +(1-ind_Taylor)*i_target
+        i_ss = ρ̄*ind_Taylor +(1-ind_Taylor)*i_target
         π_ss = i_ss - ρ_ss
         Q_ss = 1/i_ss
         x_ss = (1.0+θ/(ϵ-1.0)*π_ss*(σ*ρ̄+(1-σ)*(i_ss-π_ss)))^(1.0/(1.0/σ+ψ))
@@ -103,11 +103,13 @@ function solve_system(;params)
     sol[1:size(u)[1],:]=@view u[1:size(u)[1],:]
     sol[end,:]=1.0./u[end,:]
 
+    sol[2,:]=sol[2,:] .+1.0
+
     Vec_ss=SS_vec(p)
     SS=similar(Vec_ss)
     SS[1:size(u)[1],:]=@view Vec_ss[1:size(u)[1],:]
     SS[end,:]=1.0./Vec_ss[end,:]
-
+    SS[2]   =   SS[2] +1.0
     return (sol=sol,SS=SS,t=u.t)
 end
 
