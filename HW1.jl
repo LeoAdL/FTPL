@@ -57,7 +57,7 @@ p_2=plot_IRF_FTPL(solution=solutionNK_FTPL)
 plot(p_1,p_2,layout = 8)
 plot_θ_cum_FTPL()
 
-pp =define_env(T=150,N_t=150,ind_Taylor=0.0,long_term=0.0,S=0.0)
+pp =define_env(T=150,N_t=150,ind_Taylor=0.0,long_term=1.0,S=0.0)
 
 include("NK_FTPL_WITH_K.jl")
 

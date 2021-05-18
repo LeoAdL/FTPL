@@ -321,9 +321,9 @@ function plot_all_longterm(;var =["C","k","\\pi","i","\\iota","\\ell","Y","r","v
             linestyle      = style[j])
         end
     end
+    savefig(p,"long_term_FTPL_with_K.svg")
     display(p)
     return(p)
-    savefig(p,"long_term_FTPL_with_K.svg")
 end
 
 function plot_all_S(;var =["C","k","\\pi","i","\\iota","\\ell","Y","r","v","s","y"],pp=pp)
@@ -363,7 +363,7 @@ function plot_all_S(;var =["C","k","\\pi","i","\\iota","\\ell","Y","r","v","s","
             linestyle      = style[j])
         end
     end
+    savefig(p,"S_shape_with_K.svg")
     display(p)
     return(p)
-    savefig(p,"S_shape_with_K.svg")
 end
