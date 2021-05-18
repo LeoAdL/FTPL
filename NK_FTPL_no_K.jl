@@ -204,16 +204,16 @@ function plot_all_longterm(;var =["x","\\pi","i","v","s","y"],pp=pp)
 
     style=[:dash, :dot, :dash, :dot]
     j=0
-    for S in [0.0,1.0]
+    for Taylor in [0.0,1.0]
         for l in [0.0,1.0]
             j=j+1
-            param=define_env(T=pp.T,N_t=pp.T/pp.dt,ind_Taylor=1.0,S=S
+            param=define_env(T=pp.T,N_t=pp.T/pp.dt,ind_Taylor=1.0,ϕ_FTPL=pp.ϕ_FTPL*Taylor,S=0.0
                 ,long_term=l)            
             solution =solve_system(params=param)
             SS  = solution.SS
             dev = ((solution.sol.-SS)./SS)*100 
             plot = [dev[k,:] for k in pos]
-            label=latexstring("\$LD=$(param.long_term),S=$(param.S)\$")
+            label=latexstring("\$LD=$(param.long_term),\\phi=$(param.ϕ_FTPL)\$")
             plot!(solution.t,plot,
             xlabel         = L"t",
             legendfontsize = 7,
@@ -242,7 +242,7 @@ function plot_all_S(;var =["x","\\pi","i","v","s","y"],pp=pp)
     lab = reshape(lab,(1,length(val)))
 
 
-    p=plot(layout = length(var),title= lab,size = (1200,800),palette= :Dark2_4)
+    p=plot(layout = length(var),title= lab,size = (1200,900),palette= :Dark2_4)
 
     style=[:dash, :dot, :dash, :dot]
     j=0
