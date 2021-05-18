@@ -115,8 +115,8 @@ end
 
 @unpack T, ϕ, dt = pp
 
-function plot_IRF_FTPL(;var =["x","\\pi","i","\\rho","v","s","y"],
-                        solution,T_end=T)
+function plot_IRF_FTPL!(;var =["x","\\pi","i","\\rho","v","s","y"],
+                        solution,T_end=T,label="")
     N_end = T_end/dt+1
     val   = ["x","\\pi","i","\\rho","v","s","y"]
     pos   = (zeros(length(var)))
@@ -134,13 +134,13 @@ function plot_IRF_FTPL(;var =["x","\\pi","i","\\rho","v","s","y"],
      
     pp = [dev[k,1:round(Int,N_end)] for k in pos]
 
-    p=plot(solution.t[1:round(Int,N_end)],pp,
-        label          = lab,
+    p=plot(layout = length(var),title          = lab,palette=:tab20)
+    plot!(solution.t[1:round(Int,N_end)],pp,
         xlabel         = L"t",
         legendfontsize = 8,
         ylabel         = L"\%",
-        legend         = :outertopright,
-        palette        = :tab20)
+        label          = label,
+        legend         = :outertopright)
     display(p)
     return(p)
 end
@@ -186,3 +186,86 @@ function plot_θ_cum_FTPL(;var="x",θ_range=range(1,500,length=20),ϕ=ϕ,
     display(p)
 end
 
+function plot_all_longterm(;var =["x","\\pi","i","v","s","y"],pp=pp)
+    
+
+    val   = ["x","\\pi","i","\\rho","v","s","y"]
+    pos   = (zeros(length(var)))
+    for k in 1: length(var)
+        pos[k] = findfirst(isequal(var[k]),val)
+    end
+    pos = round.(Int, pos)
+    val = val[pos]
+    lab = [latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
+    lab = reshape(lab,(1,length(val)))
+
+
+    p=plot(layout = length(var),title= lab,size = (1200,900),palette= :Dark2_4)
+
+    style=[:dash, :dot, :dash, :dot]
+    j=0
+    for S in [0.0,1.0]
+        for l in [0.0,1.0]
+            j=j+1
+            param=define_env(T=pp.T,N_t=pp.T/pp.dt,ind_Taylor=1.0,S=S
+                ,long_term=l)            
+            solution =solve_system(params=param)
+            SS  = solution.SS
+            dev = ((solution.sol.-SS)./SS)*100 
+            plot = [dev[k,:] for k in pos]
+            label=latexstring("\$LD=$(param.long_term),S=$(param.S)\$")
+            plot!(solution.t,plot,
+            xlabel         = L"t",
+            legendfontsize = 7,
+            ylabel         = L"\%",
+            label          = label,
+            legend         = :outertopright,
+            linestyle      = style[j])
+        end
+    end
+    display(p)
+    return(p)
+    savefig(p,"long_term_FTPL_no_K.svg")
+end
+
+function plot_all_S(;var =["x","\\pi","i","v","s","y"],pp=pp)
+    
+
+    val   = ["x","\\pi","i","\\rho","v","s","y"]
+    pos   = (zeros(length(var)))
+    for k in 1: length(var)
+        pos[k] = findfirst(isequal(var[k]),val)
+    end
+    pos = round.(Int, pos)
+    val = val[pos]
+    lab = [latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
+    lab = reshape(lab,(1,length(val)))
+
+
+    p=plot(layout = length(var),title= lab,size = (1200,800),palette= :Dark2_4)
+
+    style=[:dash, :dot, :dash, :dot]
+    j=0
+    for Taylor in [0.0,1.0]
+        for S in [0.0,1.0]
+            j=j+1
+            param=define_env(T=pp.T,N_t=pp.T/pp.dt,ind_Taylor=Taylor,ϕ_FTPL=pp.ϕ_FTPL*Taylor,S=S
+                ,long_term=0.0)            
+            solution =solve_system(params=param)
+            SS  = solution.SS
+            dev = ((solution.sol.-SS)./SS)*100 
+            plot = [dev[k,:] for k in pos]
+            label=latexstring("\$S=$(param.S),\\phi=$(param.ϕ_FTPL)\$")
+            plot!(solution.t,plot,
+            xlabel         = L"t",
+            legendfontsize = 7,
+            ylabel         = L"\%",
+            label          = label,
+            legend         = :outertopright,
+            linestyle      = style[j])
+        end
+    end
+    display(p)
+    return(p)
+    savefig(p,"S_shape_no_K.svg")
+end

@@ -283,3 +283,87 @@ function plot_θ_cum_quad_FTPL(;var="Y",θ_range=range(.1,500,length=5),
     display(p)
 end
 
+function plot_all_longterm(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"],pp=pp)
+    
+
+    val   = ["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"]
+    pos   = (zeros(length(var)))
+    for k in 1: length(var)
+        pos[k] = findfirst(isequal(var[k]),val)
+    end
+    pos = round.(Int, pos)
+    val = val[pos]
+    lab = [latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
+    lab = reshape(lab,(1,length(val)))
+
+
+
+    p=plot(layout = length(var),title= lab,size = (1200,900),palette= :Dark2_4)
+
+    style=[:dash, :dot, :dash, :dot]
+    j=0
+    for S in [0.0,1.0]
+        for l in [0.0,1.0]
+            j=j+1
+            param=define_env(T=pp.T,N_t=pp.T/pp.dt,ind_Taylor=1.0,S=S
+                ,long_term=l)            
+            solution =solve_system(params=param)
+            SS  = solution.SS
+            dev = ((solution.sol.-SS)./SS)*100 
+            plot = [dev[k,:] for k in pos]
+            label=latexstring("\$LD=$(param.long_term),S=$(param.S)\$")
+            plot!(solution.t,plot,
+            xlabel         = L"t",
+            legendfontsize = 7,
+            ylabel         = L"\%",
+            label          = label,
+            legend         = :outertopright,
+            linestyle      = style[j])
+        end
+    end
+    display(p)
+    return(p)
+    savefig(p,"long_term_FTPL_with_K.svg")
+end
+
+function plot_all_S(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"],pp=pp)
+    
+
+    val   = ["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"]
+    pos   = (zeros(length(var)))
+    for k in 1: length(var)
+        pos[k] = findfirst(isequal(var[k]),val)
+    end
+    pos = round.(Int, pos)
+    val = val[pos]
+    lab = [latexstring("\$\\widehat{{$(u)}}_{t}\$") for u in val]
+    lab = reshape(lab,(1,length(val)))
+
+
+    p=plot(layout = length(var),title= lab,size = (1200,800),palette= :Dark2_4)
+
+    style=[:dash, :dot, :dash, :dot]
+    j=0
+    for Taylor in [0.0,1.0]
+        for S in [0.0,1.0]
+            j=j+1
+            param=define_env(T=pp.T,N_t=pp.T/pp.dt,ind_Taylor=Taylor,ϕ_FTPL=pp.ϕ_FTPL*Taylor,S=S
+                ,long_term=0.0)            
+            solution =solve_system(params=param)
+            SS  = solution.SS
+            dev = ((solution.sol.-SS)./SS)*100 
+            plot = [dev[k,:] for k in pos]
+            label=latexstring("\$S=$(param.S),\\phi=$(param.ϕ_FTPL)\$")
+            plot!(solution.t,plot,
+            xlabel         = L"t",
+            legendfontsize = 7,
+            ylabel         = L"\%",
+            label          = label,
+            legend         = :outertopright,
+            linestyle      = style[j])
+        end
+    end
+    display(p)
+    return(p)
+    savefig(p,"S_shape_with_K.svg")
+end
