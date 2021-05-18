@@ -283,7 +283,7 @@ function plot_θ_cum_quad_FTPL(;var="Y",θ_range=range(.1,500,length=5),
     display(p)
 end
 
-function plot_all_longterm(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"],pp=pp)
+function plot_all_longterm(;var =["C","k","\\pi","i","\\iota","\\ell","Y","r","v","s","y"],pp=pp)
     
 
     val   = ["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"]
@@ -307,7 +307,7 @@ function plot_all_longterm(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y
             j=j+1
             param=define_env(T=pp.T,N_t=pp.T/pp.dt,ind_Taylor=1.0,S=S
                 ,long_term=l)            
-            solution =solve_system(params=param)
+            solution =solve_system_quad_FTPL(params=param)
             SS  = solution.SS
             dev = ((solution.sol.-SS)./SS)*100 
             plot = [dev[k,:] for k in pos]
@@ -326,7 +326,7 @@ function plot_all_longterm(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y
     savefig(p,"long_term_FTPL_with_K.svg")
 end
 
-function plot_all_S(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"],pp=pp)
+function plot_all_S(;var =["C","k","\\pi","i","\\iota","\\ell","Y","r","v","s","y"],pp=pp)
     
 
     val   = ["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","v","s","y"]
@@ -349,7 +349,7 @@ function plot_all_S(;var =["C","k","\\pi","\\rho","i","\\iota","\\ell","Y","r","
             j=j+1
             param=define_env(T=pp.T,N_t=pp.T/pp.dt,ind_Taylor=Taylor,ϕ_FTPL=pp.ϕ_FTPL*Taylor,S=S
                 ,long_term=0.0)            
-            solution =solve_system(params=param)
+            solution =solve_system_quad_FTPL(params=param)
             SS  = solution.SS
             dev = ((solution.sol.-SS)./SS)*100 
             plot = [dev[k,:] for k in pos]

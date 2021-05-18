@@ -67,3 +67,7 @@ include("NK_FTPL_WITH_K.jl")
 plot_IRF_quad_FTPL(solution=solutionNK_FTPL_quad)
 
 plot_θ_cum_quad_FTPL(κ_range=[3,30,300])
+
+plot_all_longterm()
+
+plot_all_S()
