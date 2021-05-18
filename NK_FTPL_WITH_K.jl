@@ -298,7 +298,7 @@ function plot_all_longterm(;var =["C","k","\\pi","i","\\iota","\\ell","Y","r","v
 
 
 
-    p=plot(layout = length(var),title= lab,size = (1800,1200),palette= :Dark2_4)
+    p=plot(layout = length(var),title= lab,size = (1800,1000),palette= :Dark2_4)
 
     style=[:dash, :dot, :dash, :dot]
     j=0
@@ -340,7 +340,7 @@ function plot_all_S(;var =["C","k","\\pi","i","\\iota","\\ell","Y","r","v","s","
     lab = reshape(lab,(1,length(val)))
 
 
-    p=plot(layout = length(var),title= lab,size = (1200,800),palette= :Dark2_4)
+    p=plot(layout = length(var),title= lab,size = (1800,1000),palette= :Dark2_4)
 
     style=[:dash, :dot, :dash, :dot]
     j=0
